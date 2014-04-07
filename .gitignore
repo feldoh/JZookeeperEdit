@@ -1,0 +1,15 @@
+target
+memcached/target
+.settings
+.project
+.classpath
+.idea
+*.iml
+*.ipr
+*.iws
+.DS_Store
+atlassian-ide-plugin.xml
+messaging/test-output
+mvn
+nb-configuration.xml
+nbactions.xml
