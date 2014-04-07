@@ -26,10 +26,10 @@ Creating a Jar
 mvn jfx:jar
 
 
-Libraries Used
-===============
-Maven           - Lifecycle
-Java 1.8        - Language
-JavaFX 8        - GUI
-ControlsFX      - Dialogues
+Libraries & Tools
+=================
+Maven           - Lifecycle<br>
+Java 1.8        - Language<br>
+JavaFX 8        - GUI<br>
+ControlsFX      - Dialogues<br>
 Apache Curator  - Simple ZooKeeper Wrapper
