@@ -28,8 +28,9 @@ mvn jfx:jar
 
 Libraries & Tools
 =================
-Maven           - Lifecycle<br>
-Java 1.8        - Language<br>
-JavaFX 8        - GUI<br>
-ControlsFX      - Dialogues<br>
-Apache Curator  - Simple ZooKeeper Wrapper
+Maven               - Lifecycle<br>
+Java 1.8            - Language<br>
+JavaFX 8            - GUI<br>
+ControlsFX          - Dialogues<br>
+Apache Curator      - Simple ZooKeeper Wrapper<br>
+JavaFX Maven Plugin - Simple JavaFX + Maven
