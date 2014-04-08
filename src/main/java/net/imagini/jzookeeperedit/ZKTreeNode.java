@@ -11,6 +11,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
+import org.apache.zookeeper.data.Stat;
 
 /**
  *
@@ -67,6 +68,7 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
                 .getState().equals(CuratorFrameworkState.LATENT)) {
             super.getValue().getClient().start();
         }
+        
         hasLoadedChildren = true;
         int localDepth = depth + 1;
         try {
@@ -87,6 +89,18 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
     /* @return depth of this item within the {@link TreeView}.*/
     public int getDepth() {
         return depth;
+    }
+    
+    public Stat getStat() {
+        if (path.isEmpty()) {
+            return null;
+        }
+        try {
+            return super.getValue().getClient().checkExists().forPath(path);
+        } catch (Exception ex) {
+            Logger.getLogger(ZKTreeNode.class.getName()).log(Level.SEVERE, null, ex);
+            return null;//TODO pop up an error
+        }
     }
 
     public String getData() {

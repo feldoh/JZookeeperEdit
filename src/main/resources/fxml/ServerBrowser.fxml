@@ -44,19 +44,65 @@
               <items>
                 <AnchorPane minHeight="60.0" minWidth="60.0" prefHeight="100.0" prefWidth="160.0">
                   <children>
-                    <Accordion minHeight="60.0" minWidth="50.0" prefHeight="195.0" prefWidth="354.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <Accordion fx:id="accordionData" minHeight="60.0" minWidth="50.0" prefHeight="360.0" prefWidth="354.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                       <expandedPane>
                         <TitledPane fx:id="x1" animated="false" minHeight="50.0" minWidth="50.0" text="Data">
                           <content>
-                            <TextArea fx:id="text" minHeight="50.0" minWidth="50.0" prefHeight="312.0" prefWidth="350.0" text="" wrapText="true" />
+                            <TextArea fx:id="text" disable="true" minHeight="50.0" minWidth="50.0" prefHeight="312.0" prefWidth="350.0" text="" wrapText="true" />
                           </content>
                         </TitledPane>
                       </expandedPane>
                       <panes>
                         <fx:reference source="x1" />
-                        <TitledPane animated="false" text="Metadata">
+                        <TitledPane fx:id="paneMetadata" animated="false" text="Metadata">
                           <content>
-                            <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+                            <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                              <children>
+                                <GridPane alignment="CENTER" gridLinesVisible="false" hgap="10.0" minHeight="-1.0" minWidth="-1.0" prefHeight="284.0" prefWidth="350.0" vgap="2.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="0.0">
+                                  <children>
+                                    <Label text="cZxid" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                                    <Label text="ctime" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                                    <Label text="mZxid" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                                    <Label text="mtime" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                                    <Label text="pZxid" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+                                    <Label text="cversion" GridPane.columnIndex="0" GridPane.rowIndex="5" />
+                                    <Label text="dataVersion" GridPane.columnIndex="0" GridPane.rowIndex="6" />
+                                    <Label text="aclVersion" GridPane.columnIndex="0" GridPane.rowIndex="7" />
+                                    <Label text="ephemeralOwner" GridPane.columnIndex="0" GridPane.rowIndex="8" />
+                                    <Label text="dataLength" GridPane.columnIndex="0" GridPane.rowIndex="9" />
+                                    <Label text="numChildren" GridPane.columnIndex="0" GridPane.rowIndex="10" />
+                                    <Label id="cZxid" fx:id="labcZxid" text="" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="0" GridPane.valignment="CENTER" />
+                                    <Label id="ctime" fx:id="labctime" text="" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+                                    <Label id="mZxid" fx:id="labmZxid" text="" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+                                    <Label id="mtime" fx:id="labmtime" text="" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="3" GridPane.valignment="CENTER" />
+                                    <Label id="pZxid" fx:id="labpZxid" text="" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="4" GridPane.valignment="CENTER" />
+                                    <Label id="cversion" fx:id="labcversion" text="" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
+                                    <Label id="dataversion" fx:id="labdataversion" text="" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="6" GridPane.valignment="CENTER" />
+                                    <Label id="aclVersion" fx:id="labaclVersion" text="" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="7" GridPane.valignment="CENTER" />
+                                    <Label id="ephemeralOwner" fx:id="labephemeralOwner" text="" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="8" GridPane.valignment="CENTER" />
+                                    <Label id="dataLength" fx:id="labdataLength" text="" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="9" GridPane.valignment="CENTER" />
+                                    <Label id="numChildren" fx:id="labnumChildren" text="" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="10" GridPane.valignment="CENTER" />
+                                  </children>
+                                  <columnConstraints>
+                                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="164.0" minWidth="10.0" prefWidth="128.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="203.0" minWidth="10.0" prefWidth="202.0" />
+                                  </columnConstraints>
+                                  <rowConstraints>
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  </rowConstraints>
+                                </GridPane>
+                              </children>
+                            </AnchorPane>
                           </content>
                         </TitledPane>
                       </panes>
