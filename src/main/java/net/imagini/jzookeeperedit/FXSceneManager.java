@@ -17,6 +17,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 
@@ -30,6 +31,17 @@ public class FXSceneManager extends StackPane {
 
     public static enum SCENE {
         SERVER_BROWSER
+    }
+    
+    public FXSceneManager() {
+        init();
+    }
+    
+    private void init() {
+        AnchorPane.setBottomAnchor(this, 0.0);
+        AnchorPane.setTopAnchor(this, 0.0);
+        AnchorPane.setLeftAnchor(this, 0.0);
+        AnchorPane.setRightAnchor(this, 0.0);
     }
 
     public boolean loadScreen(SCENE scene, String resource) {

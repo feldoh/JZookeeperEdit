@@ -2,8 +2,8 @@ package net.imagini.jzookeeperedit;
 
 import javafx.application.Application;
 import static javafx.application.Application.launch;
-import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
 
@@ -23,7 +23,7 @@ public class MainApp extends Application {
                             "/fxml/ServerBrowser.fxml");
         mainContainer.setScene(FXSceneManager.SCENE.SERVER_BROWSER);
         
-        Group root = new Group(); 
+        AnchorPane root = new AnchorPane();
         root.getChildren().addAll(mainContainer); 
         Scene scene = new Scene(root); 
         stage.setScene(scene); 
