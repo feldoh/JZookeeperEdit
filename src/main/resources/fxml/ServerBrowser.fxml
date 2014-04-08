@@ -13,20 +13,20 @@
       <items>
         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
           <children>
-            <SplitPane dividerPositions="0.8914141414141414" focusTraversable="true" orientation="VERTICAL" prefHeight="398.0" prefWidth="223.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <SplitPane dividerPositions="0.9166666666666666" focusTraversable="true" orientation="VERTICAL" prefHeight="398.0" prefWidth="223.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
               <items>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                   <children>
                     <TreeView fx:id="browser" prefHeight="96.0" prefWidth="158.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                   </children>
                 </AnchorPane>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                <AnchorPane maxHeight="-Infinity" minHeight="-Infinity" minWidth="0.0" prefHeight="30.0" prefWidth="160.0">
                   <children>
-                    <HBox alignment="CENTER_LEFT" prefHeight="40.0" prefWidth="254.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <HBox alignment="CENTER" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="30.0" prefWidth="254.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                       <children>
                         <Button mnemonicParsing="false" onAction="#addServer" text="Add" HBox.hgrow="ALWAYS">
                           <HBox.margin>
-                            <Insets left="10.0" />
+                            <Insets />
                           </HBox.margin>
                         </Button>
                         <Button mnemonicParsing="false" onAction="#saveServerInfo" text="Save Cluster Details" />
@@ -40,19 +40,38 @@
         </AnchorPane>
         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="182.0" prefWidth="369.0">
           <children>
-            <SplitPane dividerPositions="0.8914141414141414" focusTraversable="true" orientation="VERTICAL" prefHeight="398.0" prefWidth="369.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <SplitPane dividerPositions="0.9166666666666666" focusTraversable="true" orientation="VERTICAL" prefHeight="398.0" prefWidth="369.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
               <items>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                   <children>
-                    <TextArea fx:id="text" prefHeight="195.0" prefWidth="367.0" wrapText="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                    <Accordion prefHeight="195.0" prefWidth="354.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                      <expandedPane>
+                        <TitledPane fx:id="x1" animated="false" text="Data">
+                          <content>
+                            <TextArea fx:id="text" prefHeight="312.0" prefWidth="350.0" text="" wrapText="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                          </content>
+                        </TitledPane>
+                      </expandedPane>
+                      <panes>
+                        <fx:reference source="x1" />
+                        <TitledPane animated="false" text="Metadata">
+                          <content>
+                            <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+                          </content>
+                        </TitledPane>
+                      </panes>
+                    </Accordion>
                   </children>
                 </AnchorPane>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                <AnchorPane maxHeight="-Infinity" minHeight="-Infinity" minWidth="0.0" prefHeight="30.0" prefWidth="160.0">
                   <children>
-                    <FlowPane alignment="CENTER_RIGHT" hgap="10.0" prefHeight="195.0" prefWidth="367.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="0.0">
+                    <FlowPane alignment="CENTER_RIGHT" hgap="10.0" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="30.0" prefWidth="354.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                       <children>
                         <Button contentDisplay="LEFT" mnemonicParsing="false" onAction="#save" text="Save" />
                       </children>
+                      <padding>
+                        <Insets right="5.0" />
+                      </padding>
                     </FlowPane>
                   </children>
                 </AnchorPane>
