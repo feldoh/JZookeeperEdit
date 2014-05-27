@@ -12,10 +12,10 @@ public class MainApp extends Application {
     private Stage stage;
     
     @Override 
-     public void start(Stage primaryStage) { 
+    public void start(Stage primaryStage) { 
         this.stage = primaryStage;
         setup();
-     }
+    }
     
     private void setup() {
         FXSceneManager mainContainer = new FXSceneManager();
