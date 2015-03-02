@@ -5,8 +5,11 @@
  */
 package net.imagini.jzookeeperedit;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
 import org.apache.curator.framework.CuratorFramework;
@@ -38,25 +41,16 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
     
     @Override
     public ObservableList<TreeItem<ZKNode>> getChildren() {
-        if (super.getValue().getClient()
-                        .getState().equals(CuratorFrameworkState.STARTED)) {
-            if (hasLoadedChildren == false) {
-                loadChildren();
-            }
+        if (hasLoadedChildren == false) {
+            loadChildren();
         }
         return super.getChildren();
     }
 
     @Override
     public boolean isLeaf() {
-        if (super.getValue().getClient()
-                        .getState().equals(CuratorFrameworkState.LATENT)) {
-            return true;
-        }
-        if (hasLoadedChildren == false) {
-            loadChildren();
-        }
-        return super.getChildren().isEmpty();
+        Optional<Stat> stat = getStat();
+        return stat.isPresent() ? stat.get().getNumChildren() == 0 : false;
     }
 
     /**
@@ -64,26 +58,40 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
      */
     @SuppressWarnings("unchecked") // Safe to ignore since we know that the types are correct.
     public void loadChildren() {
-        if (super.getValue().getClient()
-                .getState().equals(CuratorFrameworkState.LATENT)) {
-            super.getValue().getClient().start();
+        if (getClient().getState().equals(CuratorFrameworkState.LATENT)) {
+            Logger.getLogger(this.getClass().getSimpleName()).log(Level.INFO,
+                    "Starting client for: {0}",
+                    super.getValue().toString());
+            getClient().start();
         }
+        
+        Logger.getLogger(this.getClass().getSimpleName()).log(Level.INFO,
+                    "Loading children of: {0}",
+                    super.getValue().toString());
         
         hasLoadedChildren = true;
         int localDepth = depth + 1;
         try {
-            super.getValue().getClient().getChildren().forPath(
-                    path.isEmpty() ? "/" : path).forEach((String s) -> {
-                        super.getChildren().add(
-                                new ZKTreeNode(
-                                        super.getValue().getClient(),
-                                        s,
-                                        localDepth,
-                                        path.concat("/").concat(s)));
-                    });
+            List<String> children = getClient().getChildren().forPath(
+                    path.isEmpty() ? "/" : path);
+            super.setExpanded(false);
+            super.getChildren().setAll(children.parallelStream().sorted().map((String nodeLabel) -> {
+                Logger.getLogger(this.getClass().getSimpleName()).log(Level.INFO,
+                    "Adding child: {0}", nodeLabel);
+                return new ZKTreeNode(
+                                getClient(),
+                                nodeLabel,
+                                localDepth,
+                                path.concat("/").concat(nodeLabel));
+            }).collect(Collectors.toList()));
+            super.setExpanded(true);
         } catch (Exception ex) {
             Logger.getLogger(ZKTreeNode.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    private CuratorFramework getClient() {
+        return super.getValue().getClient();
     }
 
     /* @return depth of this item within the {@link TreeView}.*/
@@ -91,15 +99,15 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
         return depth;
     }
     
-    public Stat getStat() {
+    public Optional<Stat> getStat() {
         if (path.isEmpty()) {
-            return null;
+            return Optional.empty();
         }
         try {
-            return super.getValue().getClient().checkExists().forPath(path);
+            return Optional.of(getClient().checkExists().forPath(path));
         } catch (Exception ex) {
             Logger.getLogger(ZKTreeNode.class.getName()).log(Level.SEVERE, null, ex);
-            return null;//TODO pop up an error
+            return Optional.empty();
         }
     }
 
@@ -108,7 +116,7 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
             return "";
         }
         try {
-            dataCache = super.getValue().getClient().getData().forPath(path);
+            dataCache = getClient().getData().forPath(path);
             return dataCache == null ? "" : new String(dataCache);
         } catch (Exception ex) {
             Logger.getLogger(ZKTreeNode.class.getName()).log(Level.SEVERE, null, ex);
@@ -121,7 +129,7 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
             if (path.isEmpty()) {
                 return false; //TODO Show error, cant save outside a ZK node
             }
-            super.getValue().getClient().setData().forPath(path, bytes);
+            getClient().setData().forPath(path, bytes);
             return true;
         } catch (Exception ex) {
             Logger.getLogger(ZKTreeNode.class.getName()).log(Level.SEVERE, null, ex);

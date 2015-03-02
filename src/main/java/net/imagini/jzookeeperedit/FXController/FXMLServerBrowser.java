@@ -10,19 +10,20 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Accordion;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseEvent;
-import javax.naming.OperationNotSupportedException;
 import net.imagini.jzookeeperedit.FXChildScene;
 import net.imagini.jzookeeperedit.FXSceneManager;
 import net.imagini.jzookeeperedit.ZKClusterManager;
@@ -31,7 +32,10 @@ import net.imagini.jzookeeperedit.ZKTreeNode;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.zookeeper.data.Stat;
-import org.controlsfx.dialog.Dialogs;
+import org.controlsfx.dialog.ExceptionDialog;
+import org.controlsfx.dialog.Wizard;
+import org.controlsfx.dialog.Wizard.WizardPane;
+import org.controlsfx.validation.Validator;
 
 /**
  *
@@ -76,11 +80,8 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                 TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
 
                 if (item instanceof ZKTreeNode) {
-                    if (((ZKTreeNode) item).getValue().getClient()
-                            .getState().equals(CuratorFrameworkState.LATENT)) {
-                        ((ZKTreeNode) item).loadChildren();
-                    }
-                    String data = ((ZKTreeNode) item).getData();
+                    ZKTreeNode treeNode = (ZKTreeNode) item;
+                    String data = treeNode.getData();
                     if (data == null) {
                         text.setText("");
                         text.setDisable(true);
@@ -88,13 +89,15 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                         text.setText(data);
                         text.setDisable(false);
                     }
+                    treeNode.loadChildren();
                 }
             }
         });
 
-        accordionData.expandedPaneProperty().addListener(new ChangeListener<TitledPane>() {
-            @Override
-            public void changed(ObservableValue<? extends TitledPane> property, final TitledPane oldPane, final TitledPane newPane) {
+        accordionData.expandedPaneProperty().addListener(
+            (ObservableValue<? extends TitledPane> property,
+                    final TitledPane oldPane,
+                    final TitledPane newPane) -> {
                 if (oldPane != null) {
                     oldPane.setCollapsible(true);
                 }
@@ -104,17 +107,13 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                     }
                 }
             }
-        });
+        );
     }
     
     private void updateMetaData() {
         TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
         if (item instanceof ZKTreeNode) {
-            if (((ZKTreeNode) item).getValue().getClient()
-                    .getState().equals(CuratorFrameworkState.LATENT)) {
-                ((ZKTreeNode) item).loadChildren();
-            }
-            Stat stat = ((ZKTreeNode) item).getStat();
+            Stat stat = ((ZKTreeNode) item).getStat().orElse(null);
             if (stat != null) {
                 labaclVersion.setText(String.valueOf(stat.getAversion()));
                 labcZxid.setText(String.valueOf(stat.getCzxid()));
@@ -133,19 +132,50 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
 
     @FXML
     private void addServer(ActionEvent event) {
-        String friendlyName = getServerInfo(
-                "Please provide a friendly name for this cluster",
-                "localhost");
-
+        Wizard newClusterWizard = new Wizard(null, "Add new cluster");
+        
+        WizardPane friendlyNamePane = new WizardPane();
+        friendlyNamePane.setHeaderText("Please provide a friendly name for this cluster");
+        TextField txtFriendlyName = new TextField("localhost");
+        txtFriendlyName.setId("friendlyName");
+        newClusterWizard.getValidationSupport()
+                .registerValidator(txtFriendlyName,
+                        Validator.createEmptyValidator("Friendly Name is mandatory"));
+        friendlyNamePane.setContent(txtFriendlyName);
+        
+        WizardPane zkConnectPane = new WizardPane();
+        zkConnectPane.setHeaderText("Please provide your zk cluster connection string.");
+        TextField txtZkConnect = new TextField("localhost:2181");
+        txtZkConnect.setId("zkConnect");
+        newClusterWizard.getValidationSupport()
+                .registerValidator(txtZkConnect,
+                        Validator.createEmptyValidator("Connection string is mandatory"));
+//        newClusterWizard.getValidationSupport()
+//                .registerValidator(txtZkConnect,
+//                        Validator.createRegexValidator(
+//                                "Your connection string must be of the format \"host1:port,host2:port\"",
+//                                "(([\\\\w\\\\.\\\\-]+):(\\\\d+))(,([\\\\w\\\\.\\\\-]+):(\\\\d+))*",
+//                                Severity.ERROR));
+        zkConnectPane.setContent(txtZkConnect);
+        
+        newClusterWizard.setFlow(new Wizard.LinearFlow(friendlyNamePane, zkConnectPane));
+        ButtonType result = newClusterWizard.showAndWait().orElse(null);
+        if (result == ButtonType.FINISH) {
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO,
+                "New Cluster Wizard finished, settings were: {0}",
+                newClusterWizard.getSettings());
+        } else if (result == ButtonType.CANCEL) {
+                Logger.getLogger(this.getClass().getName()).log(Level.INFO,
+                    "Cancelled adding cluster");
+                return;
+        }
+        
         CuratorFramework zkClient = ZKClusterManager.addclient(
-                friendlyName,
-                getServerInfo(
-                        "Please provide your zk cluster connection string.",
-                        "localhost:2181"
-                )
+                String.valueOf(newClusterWizard.getSettings().get(txtFriendlyName.getId())),
+                String.valueOf(newClusterWizard.getSettings().get(txtZkConnect.getId()))
         );
 
-        addClusterToTree(zkClient, friendlyName);
+        addClusterToTree(zkClient, txtFriendlyName.getId());
     }
 
     private void addClusterToTree(CuratorFramework zkClient, String friendlyName) {
@@ -154,7 +184,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                 friendlyName,
                 0,
                 "/"
-        )
+            )
         );
     }
 
@@ -164,42 +194,29 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
 
         if (item instanceof ZKTreeNode) {
             if (((ZKTreeNode) item).save(text.getText().getBytes())) { //TODO: Enforce charset
-                Dialogs.create()
-                        .owner(null)
-                        .title("Operation Complete")
-                        .masthead("Success")
-                        .message("Your data has been written to Zookeeper")
-                        .showInformation();
+                new Alert(Alert.AlertType.INFORMATION,
+                    "Your data has been written to Zookeeper",
+                    ButtonType.OK).showAndWait();
             }
         } else {
-            Dialogs.create()
-                    .owner(null)
-                    .title("Invalid Save Target")
-                    .showException(new OperationNotSupportedException(
-                                    "You cant save changes to data outside a zkNode"));
+            new Alert(Alert.AlertType.ERROR,
+                    "You cant save changes to data outside a zkNode",
+                    ButtonType.OK).showAndWait();
         }
-    }
-
-    private String getServerInfo(String message, String defaultValue) {
-        return Dialogs.create()
-                .owner(null)
-                .title("Server information needed")
-                .masthead(message)
-                .showTextInput(defaultValue);
     }
 
     @FXML
     private void saveServerInfo() {
         try {
             ZKClusterManager.dumpConnectionDetails();
-        } catch (IOException ex) {
-            Logger.getLogger(FXMLServerBrowser.class.getName()).log(Level.SEVERE, null, ex);
-            Dialogs.create()
-                    .owner(null)
-                    .title("Exporting Server Details Failed")
-                    .showException(new OperationNotSupportedException(
-                                    "Unable to write config file to\n".concat(
-                                            ZKClusterManager.clusterConfigFile.getAbsolutePath())));
+        } catch (IOException writeFailedException) {
+            Logger.getLogger(this.getClass().getName())
+                    .log(Level.SEVERE, null, writeFailedException);
+            ExceptionDialog exceptionDialog = new ExceptionDialog(writeFailedException);
+            exceptionDialog.setTitle("Exporting Server Details Failed");        
+            exceptionDialog.setHeaderText("Unable to write config file to\n"
+                    .concat(ZKClusterManager.clusterConfigFile.getAbsolutePath()));
+            exceptionDialog.showAndWait();
         }
     }
 }
