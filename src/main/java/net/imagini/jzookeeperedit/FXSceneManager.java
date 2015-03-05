@@ -38,10 +38,10 @@ public class FXSceneManager extends StackPane {
     }
     
     private void init() {
-        AnchorPane.setBottomAnchor(this, 0.0);
-        AnchorPane.setTopAnchor(this, 0.0);
-        AnchorPane.setLeftAnchor(this, 0.0);
-        AnchorPane.setRightAnchor(this, 0.0);
+        AnchorPane.setBottomAnchor(this, 0.0D);
+        AnchorPane.setTopAnchor(this, 0.0D);
+        AnchorPane.setLeftAnchor(this, 0.0D);
+        AnchorPane.setRightAnchor(this, 0.0D);
     }
 
     public boolean loadScreen(SCENE scene, String resource) {
@@ -49,7 +49,7 @@ public class FXSceneManager extends StackPane {
             FXMLLoader myLoader = new FXMLLoader(getClass().getResource(resource));
             Parent loadScreen = (Parent) myLoader.load();
             FXChildScene myScreenControler
-                    = ((FXChildScene) myLoader.getController());
+                = ((FXChildScene) myLoader.getController());
             myScreenControler.setFXSceneManager(this);
             loadScreen.getStylesheets().add("/styles/Styles.css");
             addScreen(scene, loadScreen);
@@ -65,15 +65,15 @@ public class FXSceneManager extends StackPane {
     }
 
     public boolean setScene(final SCENE scene) {
-
-        if (scenes.get(scene) != null) { //screen loaded 
+        // If there is already a screen loaded
+        if (scenes.get(scene) != null) {
             final DoubleProperty opacity = opacityProperty();
 
             //Is there is more than one screen 
             if (!getChildren().isEmpty()) {
                 Timeline fade = new Timeline(
                         new KeyFrame(Duration.ZERO,
-                                new KeyValue(opacity, 1.0)),
+                                new KeyValue(opacity, 1.0D)),
                         new KeyFrame(new Duration(1000),
                                 new EventHandler() {
                                     @Override
@@ -84,22 +84,22 @@ public class FXSceneManager extends StackPane {
                                         getChildren().add(0, scenes.get(scene));
                                         Timeline fadeIn = new Timeline(
                                                 new KeyFrame(Duration.ZERO,
-                                                        new KeyValue(opacity, 0.0)),
+                                                        new KeyValue(opacity, 0.0D)),
                                                 new KeyFrame(new Duration(800),
-                                                        new KeyValue(opacity, 1.0)));
+                                                        new KeyValue(opacity, 1.0D)));
                                         fadeIn.play();
                                     }
-                                }, new KeyValue(opacity, 0.0)));
+                                }, new KeyValue(opacity, 0.0D)));
                 fade.play();
             } else {
                 //no one else been displayed, then just show 
-                setOpacity(0.0);
+                setOpacity(0.0D);
                 getChildren().add(scenes.get(scene));
                 Timeline fadeIn = new Timeline(
                         new KeyFrame(Duration.ZERO,
-                                new KeyValue(opacity, 0.0)),
+                                new KeyValue(opacity, 0.0D)),
                         new KeyFrame(new Duration(2500),
-                                new KeyValue(opacity, 1.0)));
+                                new KeyValue(opacity, 1.0D)));
                 fadeIn.play();
             }
             return true;
