@@ -7,20 +7,20 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.paint.*?>
 
-<AnchorPane id="AnchorPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="100.0" minWidth="100.0" prefHeight="400.0" prefWidth="600.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="net.imagini.jzookeeperedit.FXController.FXMLServerBrowser">
+<AnchorPane id="AnchorPane" cache="true" cacheHint="SPEED" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="100.0" minWidth="100.0" prefHeight="400.0" prefWidth="600.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="net.imagini.jzookeeperedit.FXController.FXMLServerBrowser">
   <children>
-    <SplitPane dividerPositions="0.3996655518394649" focusTraversable="true" minHeight="100.0" minWidth="100.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+    <SplitPane cache="true" cacheHint="SPEED" dividerPositions="0.3996655518394649" focusTraversable="true" minHeight="100.0" minWidth="100.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <items>
-        <AnchorPane minHeight="50.0" minWidth="50.0" prefHeight="160.0" prefWidth="100.0">
+        <AnchorPane cache="true" cacheHint="SPEED" minHeight="50.0" minWidth="50.0" prefHeight="160.0" prefWidth="100.0">
           <children>
-            <SplitPane dividerPositions="0.9166666666666666" focusTraversable="true" minHeight="50.0" minWidth="50.0" orientation="VERTICAL" prefHeight="398.0" prefWidth="223.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <SplitPane cache="true" cacheHint="SPEED" dividerPositions="0.9166666666666666" focusTraversable="true" minHeight="50.0" minWidth="50.0" orientation="VERTICAL" prefHeight="398.0" prefWidth="223.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
               <items>
-                <AnchorPane minHeight="50.0" minWidth="50.0" prefHeight="100.0" prefWidth="160.0">
+                <AnchorPane cache="true" cacheHint="SPEED" minHeight="50.0" minWidth="50.0" prefHeight="100.0" prefWidth="160.0">
                   <children>
-                    <TreeView fx:id="browser" minHeight="50.0" minWidth="50.0" prefHeight="96.0" prefWidth="158.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                    <TreeView fx:id="browser" cache="true" cacheHint="SPEED" minHeight="50.0" minWidth="50.0" prefHeight="96.0" prefWidth="158.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                   </children>
                 </AnchorPane>
-                <AnchorPane maxHeight="-Infinity" minHeight="-Infinity" minWidth="0.0" prefHeight="30.0" prefWidth="160.0">
+                <AnchorPane cache="true" cacheHint="SPEED" maxHeight="-Infinity" minHeight="-Infinity" minWidth="0.0" prefHeight="30.0" prefWidth="160.0">
                   <children>
                     <HBox alignment="CENTER" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="30.0" prefWidth="254.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                       <children>
@@ -38,7 +38,7 @@
             </SplitPane>
           </children>
         </AnchorPane>
-        <AnchorPane minHeight="70.0" minWidth="60.0" prefHeight="182.0" prefWidth="369.0">
+        <AnchorPane cache="true" cacheHint="SPEED" minHeight="70.0" minWidth="60.0" prefHeight="182.0" prefWidth="369.0">
           <children>
             <SplitPane dividerPositions="0.9166666666666666" focusTraversable="true" minHeight="70.0" minWidth="60.0" orientation="VERTICAL" prefHeight="398.0" prefWidth="369.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
               <items>
