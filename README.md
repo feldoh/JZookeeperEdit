@@ -15,6 +15,8 @@ Requirements
 This tool was written using Java 1.8 with JavaFX and Maven as its build tool.
 This means you will need the environment variable JAVA_HOME to point to a valid Java 8 Home.
 
+**Note that due to a limitation of controlsfx this tool requires at least Java 1.8.0_20**<br>
+The reason for this is discussed in [this](http://fxexperience.com/2014/09/announcing-controlsfx-8-20-7/) blog post
 
 Running using Maven
 ====================
@@ -26,10 +28,19 @@ Creating a Jar
 mvn jfx:jar
 
 
+Creating a native binary
+=========================
+mvn jfx:native
+<br>**Note that this will build a native package for whatever environment you are on**
+<br>**For example, a dmg on a mac**
+
+
 Libraries & Tools
 =================
-Maven           - Lifecycle<br>
-Java 1.8        - Language<br>
-JavaFX 8        - GUI<br>
-ControlsFX      - Dialogues<br>
-Apache Curator  - Simple ZooKeeper Wrapper
+Apache Curator 2.7.1 - Simple ZooKeeper Wrapper<br>
+ControlsFX 8.20.8    - Dialogues<br>
+Java 1.8.0_20        - Language<br>
+Maven 3.2.1          - Lifecycle<br>
+JavaFX 8             - GUI
+
+
