@@ -113,7 +113,10 @@
                   <children>
                     <FlowPane alignment="CENTER_RIGHT" hgap="10.0" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="30.0" prefWidth="354.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                       <children>
-                        <Button contentDisplay="LEFT" mnemonicParsing="false" onAction="#save" text="Save" />
+                        <Button fx:id="btnAddChild" mnemonicParsing="false" onAction="#addChild" text="Add Child" />
+                        <Button fx:id="btnAddSibling" mnemonicParsing="false" onAction="#addSibling" text="Add Sibling" />
+                        <Button fx:id="btnDelete" mnemonicParsing="false" onAction="#deleteNode" text="Delete" />
+                        <Button fx:id="btnSave" contentDisplay="LEFT" mnemonicParsing="false" onAction="#save" text="Save" />
                       </children>
                       <padding>
                         <Insets right="5.0" />

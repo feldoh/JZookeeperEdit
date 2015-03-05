@@ -39,6 +39,10 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
         this.path = path.equals("/") ? "" : path;
     }
     
+    public void setChildrenCacheIsDirty() {
+        hasLoadedChildren = false;
+    }
+    
     @Override
     public ObservableList<TreeItem<ZKNode>> getChildren() {
         if (hasLoadedChildren == false) {
@@ -52,9 +56,13 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
         Optional<Stat> stat = getStat();
         return stat.isPresent() ? stat.get().getNumChildren() == 0 : false;
     }
+    
+    public String getCanonicalPath() {
+        return path.isEmpty() ? "/" : path;
+    }
 
     /**
-     * Create some dummy children for this item.
+     * Refresh the list of children
      */
     @SuppressWarnings("unchecked") // Safe to ignore since we know that the types are correct.
     public void loadChildren() {
@@ -100,11 +108,11 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
     }
     
     public Optional<Stat> getStat() {
-        if (path.isEmpty()) {
+        if (getClient().getState().equals(CuratorFrameworkState.LATENT)){
             return Optional.empty();
         }
         try {
-            return Optional.of(getClient().checkExists().forPath(path));
+            return Optional.of(getClient().checkExists().forPath(getCanonicalPath()));
         } catch (Exception ex) {
             Logger.getLogger(ZKTreeNode.class.getName()).log(Level.SEVERE, null, ex);
             return Optional.empty();
