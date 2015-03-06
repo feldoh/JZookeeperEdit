@@ -32,6 +32,7 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
      * Control if the children of this tree item has been loaded.
      */
     private boolean hasLoadedChildren = false;
+    private boolean isFiltered = false;
     private final String path;
     private byte[] dataCache;
 
@@ -39,6 +40,10 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
         super(new ZKNode(zkClient, itemText));
         this.depth = depth;
         this.path = path.equals("/") ? "" : path;
+    }
+    
+    public boolean isFiltered() {
+        return isFiltered;
     }
     
     public void setChildrenCacheIsDirty() {
@@ -69,8 +74,11 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
 
     /**
      * Refresh the list of children
+     * @param filterPredicate A predicate for a filter which is applied to the stream of children.
      */
     public void loadChildren(Predicate<String> filterPredicate) {
+        isFiltered = !filterPredicate.equals(TRUE_PREDICATE);
+        
         if (getClient().getState().equals(CuratorFrameworkState.LATENT)) {
             Logger.getLogger(this.getClass().getSimpleName()).log(Level.INFO,
                     "Starting client for: {0}",

@@ -18,10 +18,10 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -32,19 +32,24 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TitledPane;
+import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.scene.paint.Paint;
+import javafx.util.Callback;
 import net.imagini.jzookeeperedit.FXChildScene;
 import net.imagini.jzookeeperedit.FXSceneManager;
 import net.imagini.jzookeeperedit.ZKClusterManager;
 import net.imagini.jzookeeperedit.ZKNode;
 import net.imagini.jzookeeperedit.ZKTreeNode;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.api.BackgroundCallback;
 import org.apache.curator.framework.api.CuratorEvent;
 import org.apache.curator.framework.api.CuratorEventType;
 import org.apache.zookeeper.data.Stat;
@@ -58,11 +63,15 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
 
     private static final Logger LOGGER = Logger.getLogger(FXMLServerBrowser.class.getName());
     private static final byte[] EMPTY_BYTES = "".getBytes();
+    private static final Background FILTERED_BACKGROUND = new Background( new BackgroundFill(
+            Paint.valueOf("rgb(102,178,255)"), CornerRadii.EMPTY, Insets.EMPTY));
+    private static final Background UNFILTERED_BACKGROUND = new Background( new BackgroundFill(
+            Paint.valueOf("rgb(50,120,75)"), CornerRadii.EMPTY, Insets.EMPTY));
             
     private FXSceneManager fxSceneManager;
 
     @FXML private TextArea text;
-    @FXML private Button btnAddChild;
+    @FXML private Button btnFilterChildren;
     @FXML private Button btnAddSibling;
     @FXML private Button btnDelete;
     @FXML private Button btnSave;
@@ -100,6 +109,34 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        btnFilterChildren.setBackground(FILTERED_BACKGROUND);
+        browser.setCellFactory(new Callback<TreeView<ZKNode>, TreeCell<ZKNode>>() {
+            @Override
+            public TreeCell<ZKNode> call(TreeView<ZKNode> param) {  
+                return new TreeCell<ZKNode>() { 
+                    @Override  
+                    protected void updateItem(ZKNode item, boolean empty) {  
+                        super.updateItem(item, empty);  
+                        
+                        if (!empty) {
+                            if (this.getTreeItem() instanceof ZKTreeNode) {
+                                if (((ZKTreeNode) this.getTreeItem()).isFiltered()) {
+                                    this.setBackground(FILTERED_BACKGROUND);    
+                                } else {
+//                                    this.getStyleClass().remove("tree-cell-filtered");
+//                                    this.getStyleClass().add("tree-cell-unfiltered");
+                                    this.setBackground(UNFILTERED_BACKGROUND);
+                                }
+                            }
+                            setText(item.toString());
+                        } else {  
+                            setText(null);  
+                            setGraphic(null);  
+                        }  
+                    }  
+                };  
+            }  
+        });  
         browser.setRoot(new TreeItem<>(new ZKNode(null, "Servers")));
         ZKClusterManager.getClusters().forEach((key, val) -> {
             addClusterToTree(val, key);
@@ -384,7 +421,9 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
             Pattern regex = Pattern.compile(regexString);
             TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
             if (item instanceof ZKTreeNode) {
+                //item.getParent().setExpanded(false);
                 ((ZKTreeNode) item).loadChildren(regex.asPredicate());
+                //item.getParent().setExpanded(true);
             }
         });
     }
@@ -422,9 +461,10 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                         .get(txtFilter.getId())));
                 childrenToBeRemoved.setItems(childrenToBeRemoved
                         .getItems().filtered(regex.asPredicate()));
+                this.setHeaderText(MessageFormat.format("Confirm that you want to delete this list of {0} child nodes from the currently selected node",
+                        childrenToBeRemoved.getItems().size()));
             }
         };
-        confirmationPane.setHeaderText("Confirm that you want to delete this list of child nodes from the currently selected node");
         GridPane confirmationContentPane = new GridPane();
         childrenToBeRemoved.setId("condemmedChildren");
         GridPane.setHgrow(childrenToBeRemoved, Priority.ALWAYS);
