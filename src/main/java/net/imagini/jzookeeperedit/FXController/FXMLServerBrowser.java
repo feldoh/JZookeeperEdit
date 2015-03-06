@@ -11,9 +11,14 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -22,6 +27,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
@@ -30,6 +36,8 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import net.imagini.jzookeeperedit.FXChildScene;
 import net.imagini.jzookeeperedit.FXSceneManager;
 import net.imagini.jzookeeperedit.ZKClusterManager;
@@ -38,6 +46,7 @@ import net.imagini.jzookeeperedit.ZKTreeNode;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.BackgroundCallback;
 import org.apache.curator.framework.api.CuratorEvent;
+import org.apache.curator.framework.api.CuratorEventType;
 import org.apache.zookeeper.data.Stat;
 import org.controlsfx.dialog.ExceptionDialog;
 import org.controlsfx.dialog.Wizard;
@@ -364,6 +373,118 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                 }
             });
         }
+    }
+    
+    @FXML
+    private void doFilterChildren() {
+        TextInputDialog regexDialog = new TextInputDialog(".*");
+        regexDialog.setTitle("Filter Node Children");
+        regexDialog.setHeaderText("Please provide a regex to filter children by");
+        regexDialog.showAndWait().ifPresent(regexString -> {
+            Pattern regex = Pattern.compile(regexString);
+            TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
+            if (item instanceof ZKTreeNode) {
+                ((ZKTreeNode) item).loadChildren(regex.asPredicate());
+            }
+        });
+    }
+    
+    @FXML
+    private void deleteChildrenWithFilter() {
+        Wizard deleteBatchWizard = new Wizard(null, "Delete a group of children");
+        
+        WizardPane filterPane = new WizardPane();
+        filterPane.setHeaderText("Please provide a regex to filter children by.\n"
+                + "You will have an opportunity to back out");
+        TextField txtFilter = new TextField(".*");
+        txtFilter.setId("filterRegex");
+        deleteBatchWizard.getValidationSupport()
+                .registerValidator(txtFilter,
+                        Validator.createEmptyValidator("A regex for filtering is mandatory"));
+        FlowPane filterContentPane = new FlowPane(10.0D, 10.0D);
+        filterContentPane.getChildren().add(txtFilter);
+        filterPane.setContent(filterContentPane);
+        
+        // Confirm list
+        TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
+        
+        ListView<String> childrenToBeRemoved = new ListView<>(FXCollections
+                .observableList(item
+                    .getChildren()
+                    .parallelStream()
+                    .map((TreeItem<ZKNode> node) -> node.getValue().toString())
+                    .collect(Collectors.toList())));
+        
+        WizardPane confirmationPane = new WizardPane(){
+            @Override
+            public void onEnteringPage(Wizard wizard) {
+                Pattern regex = Pattern.compile(String.valueOf(wizard.getSettings()
+                        .get(txtFilter.getId())));
+                childrenToBeRemoved.setItems(childrenToBeRemoved
+                        .getItems().filtered(regex.asPredicate()));
+            }
+        };
+        confirmationPane.setHeaderText("Confirm that you want to delete this list of child nodes from the currently selected node");
+        GridPane confirmationContentPane = new GridPane();
+        childrenToBeRemoved.setId("condemmedChildren");
+        GridPane.setHgrow(childrenToBeRemoved, Priority.ALWAYS);
+        GridPane.setVgrow(childrenToBeRemoved, Priority.ALWAYS);
+        confirmationContentPane.add(childrenToBeRemoved, 0, 0);
+        confirmationPane.setContent(confirmationContentPane);
+        
+        deleteBatchWizard.setFlow(new Wizard.LinearFlow(filterPane, confirmationPane));
+        deleteBatchWizard.showAndWait().ifPresent(button -> {
+            if (button == ButtonType.FINISH) {
+                if (item instanceof ZKTreeNode) {
+                    Object lock = new Object();
+                    ZKTreeNode parentTreeNode = (ZKTreeNode) item;
+                    AtomicLong outstandingDeletions = new AtomicLong(childrenToBeRemoved.getItems().size());
+                    childrenToBeRemoved.getItems().forEach(label -> {
+                        try {
+                            parentTreeNode.getValue().getClient().delete().guaranteed()
+                                    .deletingChildrenIfNeeded()
+                                    .inBackground((CuratorFramework cf, CuratorEvent ce) -> {
+                                        if (ce.getType().equals(CuratorEventType.DELETE)) {
+                                            System.out.println("Result code " + ce.getResultCode()
+                                                    + " while deleting: " + ce.getPath());
+                                            synchronized(lock) {
+                                                if (outstandingDeletions.decrementAndGet() == 0) {
+                                                    lock.notifyAll();
+                                                }
+                                            }
+                                        }
+                                    }).forPath(parentTreeNode.getCanonicalPath()
+                                            .concat(parentTreeNode.getCanonicalPath().equals("/")
+                                                    ? label
+                                                    : "/".concat(label)));
+                        } catch (Exception deletionException) {
+                            Logger.getLogger(FXMLServerBrowser.class.getName()).log(Level.SEVERE, null, deletionException);
+                        }
+                    });
+                    parentTreeNode.setChildrenCacheIsDirty();
+                    new Alert(Alert.AlertType.INFORMATION,
+                            "Scheduled all nodes for removal. Please wait while they are removed.",
+                            ButtonType.OK).showAndWait();
+                    while (true) {
+                        try {
+                            synchronized(lock) {
+                                if (outstandingDeletions.get() > 0) {
+                                    lock.wait();
+                                } else {
+                                    new Alert(Alert.AlertType.INFORMATION,
+                                        "All nodes removed, thankyou for waiting",
+                                        ButtonType.OK).showAndWait();
+                                    parentTreeNode.loadChildren();
+                                    break;
+                                }
+                            }
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(FXMLServerBrowser.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+            }
+        });
     }
 
     private void updateValidUIOptions(TreeItem<ZKNode> item) {

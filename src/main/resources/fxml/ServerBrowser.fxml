@@ -7,17 +7,35 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.paint.*?>
 
-<AnchorPane id="AnchorPane" cache="true" cacheHint="SPEED" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="100.0" minWidth="100.0" prefHeight="400.0" prefWidth="600.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="net.imagini.jzookeeperedit.FXController.FXMLServerBrowser">
+<AnchorPane id="AnchorPane" cache="true" cacheHint="SPEED" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="100.0" minWidth="100.0" prefHeight="600.0" prefWidth="800.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="net.imagini.jzookeeperedit.FXController.FXMLServerBrowser">
   <children>
-    <SplitPane cache="true" cacheHint="SPEED" dividerPositions="0.3996655518394649" focusTraversable="true" minHeight="100.0" minWidth="100.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+    <SplitPane cache="true" cacheHint="SPEED" dividerPositions="0.424812030075188" focusTraversable="true" minHeight="100.0" minWidth="100.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <items>
         <AnchorPane cache="true" cacheHint="SPEED" minHeight="50.0" minWidth="50.0" prefHeight="160.0" prefWidth="100.0">
           <children>
-            <SplitPane cache="true" cacheHint="SPEED" dividerPositions="0.9166666666666666" focusTraversable="true" minHeight="50.0" minWidth="50.0" orientation="VERTICAL" prefHeight="398.0" prefWidth="223.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <SplitPane cache="true" cacheHint="SPEED" dividerPositions="0.9446308724832215" focusTraversable="true" minHeight="50.0" minWidth="50.0" orientation="VERTICAL" prefHeight="398.0" prefWidth="223.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
               <items>
                 <AnchorPane cache="true" cacheHint="SPEED" minHeight="50.0" minWidth="50.0" prefHeight="100.0" prefWidth="160.0">
                   <children>
-                    <TreeView fx:id="browser" cache="true" cacheHint="SPEED" minHeight="50.0" minWidth="50.0" prefHeight="96.0" prefWidth="158.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                    <SplitPane cache="true" cacheHint="SPEED" dividerPositions="0.06630824372759857" focusTraversable="true" orientation="VERTICAL" prefHeight="560.0" prefWidth="334.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                      <items>
+                        <AnchorPane maxHeight="-1.0" minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                          <children>
+                            <ToolBar maxHeight="-Infinity" prefHeight="34.0" prefWidth="332.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                              <items>
+                                <Button cache="true" cacheHint="SPEED" mnemonicParsing="false" onAction="#doFilterChildren" text="Filter Children" />
+                                <Button mnemonicParsing="false" onAction="#deleteChildrenWithFilter" text="Delete With Filter" />
+                              </items>
+                            </ToolBar>
+                          </children>
+                        </AnchorPane>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                          <children>
+                            <TreeView fx:id="browser" cache="true" cacheHint="SPEED" minHeight="50.0" minWidth="50.0" prefHeight="518.0" prefWidth="332.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                          </children>
+                        </AnchorPane>
+                      </items>
+                    </SplitPane>
                   </children>
                 </AnchorPane>
                 <AnchorPane cache="true" cacheHint="SPEED" maxHeight="-Infinity" minHeight="-Infinity" minWidth="0.0" prefHeight="30.0" prefWidth="160.0">
@@ -40,7 +58,7 @@
         </AnchorPane>
         <AnchorPane cache="true" cacheHint="SPEED" minHeight="70.0" minWidth="60.0" prefHeight="182.0" prefWidth="369.0">
           <children>
-            <SplitPane dividerPositions="0.9166666666666666" focusTraversable="true" minHeight="70.0" minWidth="60.0" orientation="VERTICAL" prefHeight="398.0" prefWidth="369.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <SplitPane dividerPositions="0.9446308724832215" focusTraversable="true" minHeight="70.0" minWidth="60.0" orientation="VERTICAL" prefHeight="398.0" prefWidth="369.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
               <items>
                 <AnchorPane minHeight="60.0" minWidth="60.0" prefHeight="100.0" prefWidth="160.0">
                   <children>

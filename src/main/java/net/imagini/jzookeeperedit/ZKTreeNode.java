@@ -7,6 +7,7 @@ package net.imagini.jzookeeperedit;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -21,6 +22,7 @@ import org.apache.zookeeper.data.Stat;
  * @author dlowe
  */
 public class ZKTreeNode extends TreeItem<ZKNode> {
+    private static final Predicate<String> TRUE_PREDICATE = str -> true;
 
     /**
      * The depth of this tree item in the {@link TreeView}.
@@ -60,12 +62,15 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
     public String getCanonicalPath() {
         return path.isEmpty() ? "/" : path;
     }
+    
+    public void loadChildren() {
+        loadChildren(TRUE_PREDICATE);
+    }
 
     /**
      * Refresh the list of children
      */
-    @SuppressWarnings("unchecked") // Safe to ignore since we know that the types are correct.
-    public void loadChildren() {
+    public void loadChildren(Predicate<String> filterPredicate) {
         if (getClient().getState().equals(CuratorFrameworkState.LATENT)) {
             Logger.getLogger(this.getClass().getSimpleName()).log(Level.INFO,
                     "Starting client for: {0}",
@@ -83,10 +88,11 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
             List<String> children = getClient().getChildren().forPath(
                     path.isEmpty() ? "/" : path);
             super.setExpanded(false);
-            super.getChildren().setAll(children.parallelStream().sorted().map((String nodeLabel) -> {
-                Logger.getLogger(this.getClass().getSimpleName()).log(Level.INFO,
-                    "Adding child: {0}", nodeLabel);
-                return new ZKTreeNode(
+            super.getChildren().setAll(children.parallelStream().sorted()
+                    .filter(filterPredicate).map((String nodeLabel) -> {
+                        Logger.getLogger(this.getClass().getSimpleName()).log(Level.INFO, 
+                                "Adding child: {0}", nodeLabel);
+                        return new ZKTreeNode(
                                 getClient(),
                                 nodeLabel,
                                 localDepth,
