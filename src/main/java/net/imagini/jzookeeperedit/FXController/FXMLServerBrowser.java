@@ -71,6 +71,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
     private FXSceneManager fxSceneManager;
 
     @FXML private TextArea text;
+    @FXML private Button btnUnfilterChildren;
     @FXML private Button btnFilterChildren;
     @FXML private Button btnAddSibling;
     @FXML private Button btnDelete;
@@ -110,6 +111,8 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         btnFilterChildren.setBackground(FILTERED_BACKGROUND);
+        btnUnfilterChildren.setBackground(UNFILTERED_BACKGROUND);
+        
         browser.setCellFactory(new Callback<TreeView<ZKNode>, TreeCell<ZKNode>>() {
             @Override
             public TreeCell<ZKNode> call(TreeView<ZKNode> param) {  
@@ -123,6 +126,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                                 if (((ZKTreeNode) this.getTreeItem()).isFiltered()) {
                                     this.setBackground(FILTERED_BACKGROUND);    
                                 } else {
+                                      // TODO: Attempt to do this with CSS instead
 //                                    this.getStyleClass().remove("tree-cell-filtered");
 //                                    this.getStyleClass().add("tree-cell-unfiltered");
                                     this.setBackground(UNFILTERED_BACKGROUND);
@@ -525,6 +529,15 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                 }
             }
         });
+    }
+    
+    @FXML
+    private void doUnfilterChildren() {
+        TreeItem<ZKNode> selectedItem = browser.getSelectionModel().getSelectedItem();
+        if (selectedItem instanceof ZKTreeNode) {
+            loadData((ZKTreeNode) selectedItem);
+        }
+        browser.getSelectionModel().select(selectedItem);
     }
 
     private void updateValidUIOptions(TreeItem<ZKNode> item) {

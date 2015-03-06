@@ -9,7 +9,7 @@
 
 <AnchorPane id="AnchorPane" cache="true" cacheHint="SPEED" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="100.0" minWidth="100.0" prefHeight="600.0" prefWidth="800.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="net.imagini.jzookeeperedit.FXController.FXMLServerBrowser">
   <children>
-    <SplitPane cache="true" cacheHint="SPEED" dividerPositions="0.424812030075188" focusTraversable="true" minHeight="100.0" minWidth="100.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+    <SplitPane cache="true" cacheHint="SPEED" dividerPositions="0.44110275689223055" focusTraversable="true" minHeight="100.0" minWidth="100.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <items>
         <AnchorPane cache="true" cacheHint="SPEED" minHeight="50.0" minWidth="50.0" prefHeight="160.0" prefWidth="100.0">
           <children>
@@ -25,6 +25,7 @@
                               <items>
                                 <Button fx:id="btnFilterChildren" cache="true" cacheHint="SPEED" mnemonicParsing="false" onAction="#doFilterChildren" text="Filter Children" />
                                 <Button mnemonicParsing="false" onAction="#deleteChildrenWithFilter" text="Delete With Filter" />
+                                <Button fx:id="btnUnfilterChildren" mnemonicParsing="false" onAction="#doUnfilterChildren" text="Unfilter" />
                               </items>
                             </ToolBar>
                           </children>
