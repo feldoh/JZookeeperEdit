@@ -134,7 +134,8 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                     }
 
                     private boolean hasStringChanged(String oldString, String newString) {
-                        //System.out.println(String.valueOf(oldString) + " -> " + String.valueOf(newString));
+                        LOGGER.log(Level.FINEST, "Rendered TreeCell: {0} -> {1}",
+                                new String[]{String.valueOf(oldString), String.valueOf(newString)});
                         return oldString == null ? newString != null : !oldString.equals(newString);
                     }
                 };
