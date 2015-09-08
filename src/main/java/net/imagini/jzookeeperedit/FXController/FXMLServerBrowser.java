@@ -439,11 +439,10 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
         WizardPane filterPane = new WizardPane();
         filterPane.setHeaderText("Please provide a regex to filter children by.\n"
                 + "You will have an opportunity to back out");
+
         TextField txtFilter = new TextField(".*");
         txtFilter.setId("filterRegex");
-        deleteBatchWizard.getValidationSupport()
-                .registerValidator(txtFilter,
-                        Validator.createEmptyValidator("A regex for filtering is mandatory"));
+
         FlowPane filterContentPane = new FlowPane(10.0D, 10.0D);
         filterContentPane.getChildren().add(txtFilter);
         filterPane.setContent(filterContentPane);
