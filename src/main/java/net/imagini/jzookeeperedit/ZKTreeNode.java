@@ -30,11 +30,13 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
     private boolean isFiltered = false;
     private final String path;
     private byte[] dataCache;
+    private Optional<Stat> statCache;
 
     public ZKTreeNode(CuratorFramework zkClient, String itemText, int depth, String path) {
         super(new ZKNode(zkClient, itemText));
         this.depth = depth;
         this.path = path.equals("/") ? "" : path;
+        this.statCache = Optional.empty();
     }
 
     public boolean isFiltered() {
@@ -65,6 +67,7 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
 
     public void loadChildren() {
         loadChildren(TRUE_PREDICATE);
+        this.statCache = Optional.empty();
     }
 
     /**
@@ -119,6 +122,13 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
     }
 
     public Optional<Stat> getStat() {
+        if (!statCache.isPresent()) {
+            statCache = getStatFromServer();
+        }
+        return statCache;
+    }
+
+    public Optional<Stat> getStatFromServer() {
         if (getClient().getState().equals(CuratorFrameworkState.LATENT)){
             return Optional.empty();
         }
