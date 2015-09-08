@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.paint.*?>
 
-<AnchorPane id="AnchorPane" cache="true" cacheHint="SPEED" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="100.0" minWidth="100.0" prefHeight="600.0" prefWidth="800.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="net.imagini.jzookeeperedit.FXController.FXMLServerBrowser">
+<AnchorPane id="AnchorPane" cache="true" cacheHint="SPEED" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="100.0" minWidth="100.0" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.imagini.jzookeeperedit.FXController.FXMLServerBrowser">
   <children>
     <SplitPane cache="true" cacheHint="SPEED" dividerPositions="0.44110275689223055" focusTraversable="true" minHeight="100.0" minWidth="100.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <items>
@@ -23,7 +23,7 @@
                           <children>
                             <ToolBar maxHeight="-Infinity" prefHeight="34.0" prefWidth="332.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                               <items>
-                                <Button fx:id="btnFilterChildren" cache="true" cacheHint="SPEED" mnemonicParsing="false" onAction="#doFilterChildren" text="Filter Children" />
+                                <Button fx:id="btnFilterChildren" cache="true" cacheHint="SPEED" mnemonicParsing="false" onAction="#doFilterChildren" styleClass="tree-cell-filtered" stylesheets="@../styles/Styles.css" text="Filter Children" />
                                 <Button mnemonicParsing="false" onAction="#deleteChildrenWithFilter" text="Delete With Filter" />
                                 <Button fx:id="btnUnfilterChildren" mnemonicParsing="false" onAction="#doUnfilterChildren" text="Unfilter" />
                               </items>
@@ -32,7 +32,7 @@
                         </AnchorPane>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                           <children>
-                            <TreeView fx:id="browser" cache="true" cacheHint="SPEED" minHeight="50.0" minWidth="50.0" prefHeight="518.0" prefWidth="332.0" style=".tree-cell-filtered {&#10;    -fx-text-fill: rgb(102,178,255);&#10;}&#10;&#10;.tree-cell-unfiltered {&#10;    -fx-text-fill: rgb(52,200,150);&#10;}" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                            <TreeView fx:id="browser" cache="true" cacheHint="SPEED" fixedCellSize="25.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="50.0" minWidth="50.0" prefHeight="518.0" prefWidth="332.0" stylesheets="@../styles/Styles.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                           </children>
                         </AnchorPane>
                       </items>
@@ -64,15 +64,12 @@
                 <AnchorPane minHeight="60.0" minWidth="60.0" prefHeight="100.0" prefWidth="160.0">
                   <children>
                     <Accordion fx:id="accordionData" minHeight="60.0" minWidth="50.0" prefHeight="360.0" prefWidth="354.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                      <expandedPane>
-                        <TitledPane fx:id="x1" animated="false" minHeight="50.0" minWidth="50.0" text="Data">
+                      <panes>
+                        <TitledPane animated="false" minHeight="50.0" minWidth="50.0" text="Data" fx:id="x1">
                           <content>
                             <TextArea fx:id="text" disable="true" minHeight="50.0" minWidth="50.0" prefHeight="312.0" prefWidth="350.0" text="" wrapText="true" />
                           </content>
                         </TitledPane>
-                      </expandedPane>
-                      <panes>
-                        <fx:reference source="x1" />
                         <TitledPane fx:id="paneMetadata" animated="false" text="Metadata">
                           <content>
                             <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">

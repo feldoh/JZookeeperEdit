@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package net.imagini.jzookeeperedit;
 
 import java.util.List;
@@ -35,21 +30,23 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
     private boolean isFiltered = false;
     private final String path;
     private byte[] dataCache;
+    private Optional<Stat> statCache;
 
     public ZKTreeNode(CuratorFramework zkClient, String itemText, int depth, String path) {
         super(new ZKNode(zkClient, itemText));
         this.depth = depth;
         this.path = path.equals("/") ? "" : path;
+        this.statCache = Optional.empty();
     }
-    
+
     public boolean isFiltered() {
         return isFiltered;
     }
-    
+
     public void setChildrenCacheIsDirty() {
         hasLoadedChildren = false;
     }
-    
+
     @Override
     public ObservableList<TreeItem<ZKNode>> getChildren() {
         if (hasLoadedChildren == false) {
@@ -63,13 +60,14 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
         Optional<Stat> stat = getStat();
         return stat.isPresent() ? stat.get().getNumChildren() == 0 : false;
     }
-    
+
     public String getCanonicalPath() {
         return path.isEmpty() ? "/" : path;
     }
-    
+
     public void loadChildren() {
         loadChildren(TRUE_PREDICATE);
+        this.statCache = Optional.empty();
     }
 
     /**
@@ -78,27 +76,29 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
      */
     public void loadChildren(Predicate<String> filterPredicate) {
         isFiltered = !filterPredicate.equals(TRUE_PREDICATE);
-        
+
         if (getClient().getState().equals(CuratorFrameworkState.LATENT)) {
             Logger.getLogger(this.getClass().getSimpleName()).log(Level.INFO,
                     "Starting client for: {0}",
                     super.getValue().toString());
             getClient().start();
         }
-        
+
         Logger.getLogger(this.getClass().getSimpleName()).log(Level.INFO,
                     "Loading children of: {0}",
                     super.getValue().toString());
-        
+
         hasLoadedChildren = true;
         int localDepth = depth + 1;
         try {
             List<String> children = getClient().getChildren().forPath(
                     path.isEmpty() ? "/" : path);
             super.setExpanded(false);
-            super.getChildren().setAll(children.parallelStream().sorted()
-                    .filter(filterPredicate).map((String nodeLabel) -> {
-                        Logger.getLogger(this.getClass().getSimpleName()).log(Level.INFO, 
+            super.getChildren().setAll(children.parallelStream()
+                    .filter(filterPredicate)
+                    .sorted()
+                    .map((String nodeLabel) -> {
+                        Logger.getLogger(this.getClass().getSimpleName()).log(Level.INFO,
                                 "Adding child: {0}", nodeLabel);
                         return new ZKTreeNode(
                                 getClient(),
@@ -111,7 +111,7 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
             Logger.getLogger(ZKTreeNode.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     private CuratorFramework getClient() {
         return super.getValue().getClient();
     }
@@ -120,8 +120,15 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
     public int getDepth() {
         return depth;
     }
-    
+
     public Optional<Stat> getStat() {
+        if (!statCache.isPresent()) {
+            statCache = getStatFromServer();
+        }
+        return statCache;
+    }
+
+    public Optional<Stat> getStatFromServer() {
         if (getClient().getState().equals(CuratorFrameworkState.LATENT)){
             return Optional.empty();
         }
@@ -145,7 +152,7 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
             return "";//TODO pop up an error
         }
     }
-    
+
     public boolean save(byte[] bytes) {
         try {
             if (path.isEmpty()) {
