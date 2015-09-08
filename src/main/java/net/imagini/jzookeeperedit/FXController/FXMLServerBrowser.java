@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package net.imagini.jzookeeperedit.FXController;
 
 import java.io.IOException;
@@ -53,6 +48,9 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.CuratorEvent;
 import org.apache.curator.framework.api.CuratorEventType;
 import org.apache.zookeeper.data.Stat;
+import org.controlsfx.control.decoration.Decoration;
+import org.controlsfx.control.decoration.Decorator;
+import org.controlsfx.control.decoration.StyleClassDecoration;
 import org.controlsfx.dialog.ExceptionDialog;
 import org.controlsfx.dialog.Wizard;
 import org.controlsfx.dialog.Wizard.WizardPane;
@@ -63,22 +61,18 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
 
     private static final Logger LOGGER = Logger.getLogger(FXMLServerBrowser.class.getName());
     private static final byte[] EMPTY_BYTES = "".getBytes();
-    private static final Background FILTERED_BACKGROUND = new Background( new BackgroundFill(
-            Paint.valueOf("rgb(102,178,255)"), CornerRadii.EMPTY, Insets.EMPTY));
-    private static final Background UNFILTERED_BACKGROUND = new Background( new BackgroundFill(
-            Paint.valueOf("rgb(50,120,75)"), CornerRadii.EMPTY, Insets.EMPTY));
-            
+    private static final Decoration FILTERED_DECORATION = new StyleClassDecoration(
+            "tree-cell-filtered");
+
     private FXSceneManager fxSceneManager;
 
     @FXML private TextArea text;
-    @FXML private Button btnUnfilterChildren;
-    @FXML private Button btnFilterChildren;
     @FXML private Button btnAddSibling;
     @FXML private Button btnDelete;
     @FXML private Button btnSave;
     @FXML private TreeView<ZKNode> browser;
     @FXML private Accordion accordionData;
-    
+
     @FXML private Label labcZxid;
     @FXML private Label labctime;
     @FXML private Label labmZxid;
@@ -95,7 +89,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
     public void setFXSceneManager(FXSceneManager fxSceneManager) {
         this.fxSceneManager = fxSceneManager;
     }
-    
+
     private void loadData(ZKTreeNode treeNode) {
         String data = treeNode.getData();
         if (data == null) {
@@ -110,37 +104,42 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        btnFilterChildren.setBackground(FILTERED_BACKGROUND);
-        btnUnfilterChildren.setBackground(UNFILTERED_BACKGROUND);
-        
         browser.setCellFactory(new Callback<TreeView<ZKNode>, TreeCell<ZKNode>>() {
             @Override
-            public TreeCell<ZKNode> call(TreeView<ZKNode> param) {  
-                return new TreeCell<ZKNode>() { 
-                    @Override  
-                    protected void updateItem(ZKNode item, boolean empty) {  
-                        super.updateItem(item, empty);  
-                        
+            public TreeCell<ZKNode> call(TreeView<ZKNode> param) {
+                return new TreeCell<ZKNode>() {
+                    @Override
+                    protected void updateItem(ZKNode item, boolean empty) {
+                        super.updateItem(item, empty);
+
                         if (!empty) {
                             if (this.getTreeItem() instanceof ZKTreeNode) {
                                 if (((ZKTreeNode) this.getTreeItem()).isFiltered()) {
-                                    this.setBackground(FILTERED_BACKGROUND);    
+                                    Decorator.addDecoration(this, FILTERED_DECORATION);
                                 } else {
-                                      // TODO: Attempt to do this with CSS instead
-//                                    this.getStyleClass().remove("tree-cell-filtered");
-//                                    this.getStyleClass().add("tree-cell-unfiltered");
-                                    this.setBackground(UNFILTERED_BACKGROUND);
+                                    Decorator.removeDecoration(this, FILTERED_DECORATION);
                                 }
                             }
-                            setText(item.toString());
-                        } else {  
-                            setText(null);  
-                            setGraphic(null);  
-                        }  
-                    }  
-                };  
-            }  
-        });  
+                            setTextIfChanged(item.toString());
+                        } else {
+                            this.setText(null);
+                            this.setGraphic(null);
+                        }
+                    }
+
+                    private void setTextIfChanged(String newText) {
+                        if (hasStringChanged(this.getText(), newText)) {
+                            this.setText(newText);
+                        }
+                    }
+
+                    private boolean hasStringChanged(String oldString, String newString) {
+                        //System.out.println(String.valueOf(oldString) + " -> " + String.valueOf(newString));
+                        return oldString == null ? newString != null : !oldString.equals(newString);
+                    }
+                };
+            }
+        });
         browser.setRoot(new TreeItem<>(new ZKNode(null, "Servers")));
         ZKClusterManager.getClusters().forEach((key, val) -> {
             addClusterToTree(val, key);
@@ -151,7 +150,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
             text.clear();
             updateValidUIOptions(item);
             updateMetaData();
-            
+
             if (mouseEvent.getClickCount() == 2) {
                 if (item instanceof ZKTreeNode) {
                     loadData((ZKTreeNode) item);
@@ -174,7 +173,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
             }
         );
     }
-    
+
     private void updateMetaData() {
         TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
         if (item instanceof ZKTreeNode) {
@@ -198,7 +197,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
     @FXML
     private void addServer(ActionEvent event) {
         Wizard newClusterWizard = new Wizard(null, "Add new cluster");
-        
+
         WizardPane friendlyNamePane = new WizardPane();
         friendlyNamePane.setHeaderText("Please provide a friendly name for this cluster");
         TextField txtFriendlyName = new TextField("localhost");
@@ -209,7 +208,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
         FlowPane friendlyNameContentPane = new FlowPane(10, 10);
         friendlyNameContentPane.getChildren().add(txtFriendlyName);
         friendlyNamePane.setContent(friendlyNameContentPane);
-        
+
         WizardPane zkConnectPane = new WizardPane();
         zkConnectPane.setHeaderText("Please provide your zk cluster connection string.");
         TextField txtZkConnect = new TextField("localhost:2181");
@@ -221,10 +220,10 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
         FlowPane zkConnectContentPane = new FlowPane(10, 10);
         zkConnectContentPane.getChildren().add(txtZkConnect);
         zkConnectPane.setContent(zkConnectContentPane);
-        
+
         newClusterWizard.setFlow(new Wizard.LinearFlow(friendlyNamePane, zkConnectPane));
         ButtonType result = newClusterWizard.showAndWait().orElse(null);
-        
+
         // Workaround for last page in Wizard not saving entries.
         try {
             Method wizardUpdateSettingsMethod;
@@ -232,11 +231,11 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                     getDeclaredMethod("readSettings", WizardPane.class);
             wizardUpdateSettingsMethod.setAccessible(true);
             wizardUpdateSettingsMethod.invoke(newClusterWizard, zkConnectPane);
-        zkConnectPane.onExitingPage(newClusterWizard);
-        } catch (NoSuchMethodException 
-                | SecurityException 
-                | IllegalAccessException 
-                | IllegalArgumentException 
+            zkConnectPane.onExitingPage(newClusterWizard);
+        } catch (NoSuchMethodException
+                | SecurityException
+                | IllegalAccessException
+                | IllegalArgumentException
                 | InvocationTargetException reflectionException) {
             Logger.getLogger(FXMLServerBrowser.class.getName()).log(Level.SEVERE, null, reflectionException);
             new Alert(Alert.AlertType.ERROR,
@@ -244,7 +243,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                     ButtonType.OK).showAndWait();
             return;
         }
-        
+
         if (result == ButtonType.FINISH) {
             LOGGER.log(Level.INFO, "New Cluster Wizard finished, settings were: {0}",
                 newClusterWizard.getSettings());
@@ -252,7 +251,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                 LOGGER.log(Level.INFO, "Cancelled adding cluster");
                 return;
         }
-        
+
         String friendlyName = String.valueOf(newClusterWizard.getSettings().get(txtFriendlyName.getId()));
         String zkConnect = String.valueOf(newClusterWizard.getSettings().get(txtZkConnect.getId()));
         CuratorFramework zkClient = ZKClusterManager.addclient(friendlyName, zkConnect);
@@ -293,13 +292,13 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
         } catch (IOException writeFailedException) {
             LOGGER.log(Level.SEVERE, null, writeFailedException);
             ExceptionDialog exceptionDialog = new ExceptionDialog(writeFailedException);
-            exceptionDialog.setTitle("Exporting Server Details Failed");        
+            exceptionDialog.setTitle("Exporting Server Details Failed");
             exceptionDialog.setHeaderText("Unable to write config file to\n"
                     .concat(ZKClusterManager.clusterConfigFile.getAbsolutePath()));
             exceptionDialog.showAndWait();
         }
     }
-    
+
     @FXML
     private void addChild() {
         TextInputDialog dialog = new TextInputDialog();
@@ -327,14 +326,14 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                 } catch (Exception zookeeperClientException) {
                     LOGGER.log(Level.SEVERE, null, zookeeperClientException);
                     ExceptionDialog exceptionDialog = new ExceptionDialog(zookeeperClientException);
-                    exceptionDialog.setTitle("Adding Child Node failed");        
+                    exceptionDialog.setTitle("Adding Child Node failed");
                     exceptionDialog.setHeaderText("Failed to add: " + nodeLabel);
                     exceptionDialog.showAndWait();
                 }
             }
         });
     }
-    
+
     @FXML
     private void addSibling() {
         TextInputDialog dialog = new TextInputDialog();
@@ -362,14 +361,14 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                 } catch (Exception zookeeperClientException) {
                     LOGGER.log(Level.SEVERE, null, zookeeperClientException);
                     ExceptionDialog exceptionDialog = new ExceptionDialog(zookeeperClientException);
-                    exceptionDialog.setTitle("Adding Sibling Node failed");        
+                    exceptionDialog.setTitle("Adding Sibling Node failed");
                     exceptionDialog.setHeaderText("Failed to add: " + nodeLabel);
                     exceptionDialog.showAndWait();
                 }
             }
         });
     }
-    
+
     @FXML
     private void deleteNode() {
         TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
@@ -407,7 +406,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                     } catch (Exception zookeeperClientException) {
                         LOGGER.log(Level.SEVERE, null, zookeeperClientException);
                         ExceptionDialog exceptionDialog = new ExceptionDialog(zookeeperClientException);
-                        exceptionDialog.setTitle("Deleting Node failed");        
+                        exceptionDialog.setTitle("Deleting Node failed");
                         exceptionDialog.setHeaderText("Failed to delete: " + treeNode.getCanonicalPath());
                         exceptionDialog.showAndWait();
                     }
@@ -415,7 +414,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
             });
         }
     }
-    
+
     @FXML
     private void doFilterChildren() {
         TextInputDialog regexDialog = new TextInputDialog(".*");
@@ -431,11 +430,11 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
             }
         });
     }
-    
+
     @FXML
     private void deleteChildrenWithFilter() {
         Wizard deleteBatchWizard = new Wizard(null, "Delete a group of children");
-        
+
         WizardPane filterPane = new WizardPane();
         filterPane.setHeaderText("Please provide a regex to filter children by.\n"
                 + "You will have an opportunity to back out");
@@ -447,17 +446,17 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
         FlowPane filterContentPane = new FlowPane(10.0D, 10.0D);
         filterContentPane.getChildren().add(txtFilter);
         filterPane.setContent(filterContentPane);
-        
+
         // Confirm list
         TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
-        
+
         ListView<String> childrenToBeRemoved = new ListView<>(FXCollections
                 .observableList(item
                     .getChildren()
                     .parallelStream()
                     .map((TreeItem<ZKNode> node) -> node.getValue().toString())
                     .collect(Collectors.toList())));
-        
+
         WizardPane confirmationPane = new WizardPane(){
             @Override
             public void onEnteringPage(Wizard wizard) {
@@ -475,7 +474,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
         GridPane.setVgrow(childrenToBeRemoved, Priority.ALWAYS);
         confirmationContentPane.add(childrenToBeRemoved, 0, 0);
         confirmationPane.setContent(confirmationContentPane);
-        
+
         deleteBatchWizard.setFlow(new Wizard.LinearFlow(filterPane, confirmationPane));
         deleteBatchWizard.showAndWait().ifPresent(button -> {
             if (button == ButtonType.FINISH) {
@@ -530,7 +529,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
             }
         });
     }
-    
+
     @FXML
     private void doUnfilterChildren() {
         TreeItem<ZKNode> selectedItem = browser.getSelectionModel().getSelectedItem();
