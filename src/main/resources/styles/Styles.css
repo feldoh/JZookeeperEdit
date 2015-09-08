@@ -1,3 +1,8 @@
 .button {
     -fx-font-weight: bold;
 }
+
+.tree-cell-filtered {
+    -fx-background-color: rgb(102,178,255);
+}
+
