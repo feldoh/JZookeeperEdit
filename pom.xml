@@ -36,7 +36,7 @@
     </dependencies>
     
     <build>
-        <finalName>JZookeeperEdit</finalName>
+        <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -126,6 +126,8 @@
                 <version>8.1.3</version>
                 <configuration>
                     <mainClass>net.imagini.jzookeeperedit.MainApp</mainClass>
+                    <appName>${project.artifactId}</appName>
+                    <nativeReleaseVersion>${project.version}</nativeReleaseVersion>
                 </configuration>
                 <dependencies>
                     <dependency>
