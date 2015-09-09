@@ -12,8 +12,8 @@ where it will save details of servers you connect to if you click "Save Cluster 
 
 Get a pre-built Binary
 ======================
-Pre-built binaries are available for most common platforms on [Bintray](https://bintray.com/feldoh/JZookeeperEdit/JZookeeperEdit)
-
+Pre-built binaries are available for most common platforms on [Bintray](https://bintray.com/feldoh/JZookeeperEdit/JZookeeperEdit)<br>
+[ ![Download](https://api.bintray.com/packages/feldoh/JZookeeperEdit/JZookeeperEdit/images/download.svg) ](https://bintray.com/feldoh/JZookeeperEdit/JZookeeperEdit/_latestVersion)
 
 Requirements
 ==============
