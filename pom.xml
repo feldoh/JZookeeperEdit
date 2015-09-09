@@ -36,6 +36,7 @@
     </dependencies>
     
     <build>
+        <finalName>JZookeeperEdit</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
