@@ -10,6 +10,11 @@ On first run it will create a config file in your home directory .JZookeeperEdit
 where it will save details of servers you connect to if you click "Save Cluster Details"
 
 
+Get a pre-built Binary
+======================
+Pre-built binaries are available for most common platforms on [Bintray](https://bintray.com/feldoh/JZookeeperEdit/JZookeeperEdit)
+
+
 Requirements
 ==============
 This tool was written using Java 1.8 with JavaFX and Maven as its build tool.
@@ -36,11 +41,11 @@ mvn jfx:native
 
 
 Libraries & Tools
-=================
-Apache Curator 2.7.1 - Simple ZooKeeper Wrapper<br>
-JavaFX Maven Plugin  - Simple JavaFX + Maven
-ControlsFX 8.20.8    - Dialogues<br>
-Java 1.8.0_20        - Language<br>
-Maven 3.2.1          - Lifecycle<br>
-JavaFX 8             - GUI
+=========================
+JavaFX Maven Plugin 8.1.3  - Simple JavaFX + Maven<br>
+Apache Curator 2.8.0       - Simple ZooKeeper Wrapper<br>
+ControlsFX 8.20.8          - Dialogues<br>
+Java 1.8.0_45              - Language<br>
+Maven 3.2.1                - Lifecycle<br>
+JavaFX 8                   - GUI
 
