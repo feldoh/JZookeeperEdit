@@ -43,9 +43,9 @@ mvn jfx:native
 Libraries & Tools
 =========================
 JavaFX Maven Plugin 8.1.3  - Simple JavaFX + Maven<br>
-Apache Curator 2.8.0       - Simple ZooKeeper Wrapper<br>
-ControlsFX 8.20.8          - Dialogues<br>
-Java 1.8.0_45              - Language<br>
+Apache Curator 3.2.0       - Simple ZooKeeper Wrapper<br>
+ControlsFX 8.40.12         - Dialogues<br>
+Java 1.8.0_102             - Language<br>
 Maven 3.2.1                - Lifecycle<br>
 JavaFX 8                   - GUI
 
