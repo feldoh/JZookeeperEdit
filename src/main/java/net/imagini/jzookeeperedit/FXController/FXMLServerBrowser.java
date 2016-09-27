@@ -149,7 +149,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
         ZKClusterManager.getClusters().forEach(this::addClusterToTree);
 
         browser.setOnMouseClicked((MouseEvent mouseEvent) -> {
-            TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
+            TreeItem<ZKNode> item = getSelectedItem();
             text.clear();
             updateValidUIOptions(item);
             updateMetaData();
@@ -178,7 +178,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
     }
 
     private void updateMetaData() {
-        TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
+        TreeItem<ZKNode> item = getSelectedItem();
         if (item instanceof ZKTreeNode) {
             Stat stat = ((ZKTreeNode) item).getStat().orElse(null);
             if (stat != null) {
@@ -282,7 +282,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
 
     @FXML
     private void save() {
-        TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
+        TreeItem<ZKNode> item = getSelectedItem();
 
         if (item instanceof ZKTreeNode) {
             if (((ZKTreeNode) item).save(text.getText().getBytes())) { //TODO: Enforce charset
@@ -323,7 +323,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                     ButtonType.OK).showAndWait();
                 return;
             }
-            TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
+            TreeItem<ZKNode> item = getSelectedItem();
             if (item instanceof ZKTreeNode) {
                 try {
                     ZKTreeNode treeNode = (ZKTreeNode) item;
@@ -358,7 +358,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                     ButtonType.OK).showAndWait();
                 return;
             }
-            TreeItem<ZKNode> parent = browser.getSelectionModel().getSelectedItem().getParent();
+            TreeItem<ZKNode> parent = getSelectedItem().getParent();
             if (parent instanceof ZKTreeNode) {
                 try {
                     ZKTreeNode treeNode = (ZKTreeNode) parent;
@@ -383,7 +383,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
 
     @FXML
     private void deleteNode() {
-        TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
+        TreeItem<ZKNode> item = getSelectedItem();
         if (item instanceof ZKTreeNode) {
             ZKTreeNode treeNode = (ZKTreeNode) item;
             if (treeNode.getCanonicalPath().equals("/")){
@@ -436,7 +436,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
         regexDialog.setHeaderText("Please provide a regex to filter children by");
         regexDialog.showAndWait().ifPresent(regexString -> {
             Pattern regex = Pattern.compile(regexString);
-            TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
+            TreeItem<ZKNode> item = getSelectedItem();
             if (item instanceof ZKTreeNode) {
                 ((ZKTreeNode) item).loadChildren(regex.asPredicate());
             }
@@ -459,7 +459,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
         filterPane.setContent(filterContentPane);
 
         // Confirm list
-        TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
+        TreeItem<ZKNode> item = getSelectedItem();
 
         ListView<String> childrenToBeRemoved = new ListView<>(FXCollections
                 .observableList(item
@@ -544,11 +544,18 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
 
     @FXML
     private void doUnfilterChildren() {
-        TreeItem<ZKNode> selectedItem = browser.getSelectionModel().getSelectedItem();
+        TreeItem<ZKNode> selectedItem = getSelectedItem();
         if (selectedItem instanceof ZKTreeNode) {
             loadData((ZKTreeNode) selectedItem);
         }
         browser.getSelectionModel().select(selectedItem);
+    }
+
+    private String getPathFromNodeWithClusterPrefix(TreeItem<ZKNode> selectedItem) {
+        return selectedItem == null
+                ? ""
+                : ZKClusterManager.getFriendlyName(selectedItem.getValue().getClient()).orElse("")
+                + getPathFromNode(selectedItem);
     }
 
     private String getPathFromNode(TreeItem<ZKNode> node) {
@@ -561,11 +568,15 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
 
     @FXML
     private void doGoto() {
-        TextInputDialog dialog = new TextInputDialog(getPathFromNode(browser.getSelectionModel().getSelectedItem()));
+        TextInputDialog dialog = new TextInputDialog(getPathFromNodeWithClusterPrefix(getSelectedItem()));
         dialog.setTitle("Goto Node");
         dialog.setHeaderText("Jump to another node anywhere in the tree");
         dialog.setContentText("Target path");
         dialog.showAndWait().ifPresent(this::navigateTo);
+    }
+
+    private TreeItem<ZKNode> getSelectedItem() {
+        return browser.getSelectionModel().getSelectedItem();
     }
 
     private void navigateTo(String path) {
