@@ -48,7 +48,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
@@ -72,6 +75,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
     @FXML private Button btnSave;
     @FXML private TreeView<ZKNode> browser;
     @FXML private Accordion accordionData;
+    @FXML private TitledPane paneData;
 
     @FXML private Label labcZxid;
     @FXML private Label labctime;
@@ -150,9 +154,11 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
             updateValidUIOptions(item);
             updateMetaData();
 
+            paneData.setText("Data - Not Loaded, double click node to load");
             if (mouseEvent.getClickCount() == 2) {
                 if (item instanceof ZKTreeNode) {
                     loadData((ZKTreeNode) item);
+                    paneData.setText(String.format("Data - Loaded at %s", LocalDateTime.now().toString()));
                 }
             }
         });
@@ -164,10 +170,8 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                     if (oldPane != null) {
                         oldPane.setCollapsible(true);
                     }
-                    if (newPane != null) {
-                        if (newPane.getId().equals("paneMetadata")) {
-                            updateMetaData();
-                        }
+                    if (newPane != null && "paneMetadata".equals(newPane.getId())) {
+                        updateMetaData();
                     }
                 }
         );
@@ -545,6 +549,42 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
             loadData((ZKTreeNode) selectedItem);
         }
         browser.getSelectionModel().select(selectedItem);
+    }
+
+    private String getPathFromNode(TreeItem<ZKNode> node) {
+        return node == null
+                ? ""
+                : node instanceof ZKTreeNode
+                    ? ((ZKTreeNode) node).getCanonicalPath()
+                    : node.getValue().toString();
+    }
+
+    @FXML
+    private void doGoto() {
+        TextInputDialog dialog = new TextInputDialog(getPathFromNode(browser.getSelectionModel().getSelectedItem()));
+        dialog.setTitle("Goto Node");
+        dialog.setHeaderText("Jump to another node anywhere in the tree");
+        dialog.setContentText("Target path");
+        dialog.showAndWait().ifPresent(this::navigateTo);
+    }
+
+    private void navigateTo(String path) {
+        String[] pathElements = path.split("/");
+        int rootOffset = pathElements[0].isEmpty() ? 1 : 0;
+        TreeItem<ZKNode> root = getChild(browser.getRoot(), pathElements[rootOffset]);
+        if (root != null) {
+            browser.getSelectionModel().select(Arrays.stream(pathElements).skip(rootOffset + 1).reduce(root, this::getChild, (a,b) -> b));
+        }
+    }
+
+    private TreeItem<ZKNode> getChild(TreeItem<ZKNode> parent, String pathElement) {
+        if (parent != null) {
+            Optional<TreeItem<ZKNode>> matchingChild = parent.getChildren().stream()
+                     .filter((node) -> pathElement.equals(node.getValue().toString())).findFirst();
+            matchingChild.ifPresent((node) -> node.setExpanded(true));
+            return matchingChild.orElse(null);
+        }
+        return null;
     }
 
     private void updateValidUIOptions(TreeItem<ZKNode> item) {
