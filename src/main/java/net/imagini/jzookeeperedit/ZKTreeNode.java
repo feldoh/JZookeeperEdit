@@ -3,20 +3,22 @@ package net.imagini.jzookeeperedit;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.zookeeper.data.Stat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author dlowe
  */
 public class ZKTreeNode extends TreeItem<ZKNode> {
+    private static Logger LOGGER = LoggerFactory.getLogger(ZKTreeNode.class);
     private static final Predicate<String> TRUE_PREDICATE = str -> true;
 
     /**
@@ -49,7 +51,7 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
 
     @Override
     public ObservableList<TreeItem<ZKNode>> getChildren() {
-        if (hasLoadedChildren == false) {
+        if (!hasLoadedChildren) {
             loadChildren();
         }
         return super.getChildren();
@@ -58,7 +60,7 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
     @Override
     public boolean isLeaf() {
         Optional<Stat> stat = getStat();
-        return stat.isPresent() ? stat.get().getNumChildren() == 0 : false;
+        return stat.isPresent() && stat.get().getNumChildren() == 0;
     }
 
     public String getCanonicalPath() {
@@ -78,16 +80,11 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
         isFiltered = !filterPredicate.equals(TRUE_PREDICATE);
 
         if (getClient().getState().equals(CuratorFrameworkState.LATENT)) {
-            Logger.getLogger(this.getClass().getSimpleName()).log(Level.INFO,
-                    "Starting client for: {0}",
-                    super.getValue().toString());
+            LOGGER.info("Starting client for: {}", super.getValue().toString());
             getClient().start();
         }
 
-        Logger.getLogger(this.getClass().getSimpleName()).log(Level.INFO,
-                    "Loading children of: {0}",
-                    super.getValue().toString());
-
+        LOGGER.info("Loading children of: {}", super.getValue().toString());
         hasLoadedChildren = true;
         int localDepth = depth + 1;
         try {
@@ -98,8 +95,7 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
                     .filter(filterPredicate)
                     .sorted()
                     .map((String nodeLabel) -> {
-                        Logger.getLogger(this.getClass().getSimpleName()).log(Level.INFO,
-                                "Adding child: {0}", nodeLabel);
+                        LOGGER.info("Adding child: {}", nodeLabel);
                         return new ZKTreeNode(
                                 getClient(),
                                 nodeLabel,
@@ -108,7 +104,8 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
             }).collect(Collectors.toList()));
             super.setExpanded(true);
         } catch (Exception ex) {
-            Logger.getLogger(ZKTreeNode.class.getName()).log(Level.SEVERE, null, ex);
+            hasLoadedChildren = false;
+            LOGGER.error("Error while loading children", ex);
         }
     }
 
@@ -135,7 +132,7 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
         try {
             return Optional.of(getClient().checkExists().forPath(getCanonicalPath()));
         } catch (Exception ex) {
-            Logger.getLogger(ZKTreeNode.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.error(String.format("Error while retrieving metadata for %s", getCanonicalPath()), ex);
             return Optional.empty();
         }
     }
@@ -148,7 +145,7 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
             dataCache = getClient().getData().forPath(path);
             return dataCache == null ? "" : new String(dataCache);
         } catch (Exception ex) {
-            Logger.getLogger(ZKTreeNode.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.error(String.format("Error while retrieving data for %s", getCanonicalPath()), ex);
             return "";//TODO pop up an error
         }
     }
@@ -161,7 +158,7 @@ public class ZKTreeNode extends TreeItem<ZKNode> {
             getClient().setData().forPath(path, bytes);
             return true;
         } catch (Exception ex) {
-            Logger.getLogger(ZKTreeNode.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.error(String.format("Error while saving data for %s", getCanonicalPath()), ex);
             return false;
         }
     }

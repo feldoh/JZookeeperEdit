@@ -8,20 +8,34 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author dlowe
  */
 public class FXSceneManager extends StackPane {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FXSceneManager.class);
+    private static final String STYLESHEET_PATH = "/styles/Styles.css";
 
     private final Map<SCENE, Node> scenes = new HashMap<>();
 
-    public static enum SCENE {
-        SERVER_BROWSER
+    enum SCENE {
+        SERVER_BROWSER("/fxml/ServerBrowser.fxml");
+
+        private final String fxmlPath;
+
+        SCENE(String fxmlPath) {
+            this.fxmlPath = fxmlPath;
+        }
+
+        FXMLLoader buildLoader() {
+            return new FXMLLoader(getClass().getResource(fxmlPath));
+        }
     }
     
-    public FXSceneManager() {
+    FXSceneManager() {
         init();
     }
     
@@ -32,29 +46,28 @@ public class FXSceneManager extends StackPane {
         AnchorPane.setRightAnchor(this, 0.0D);
     }
 
-    public boolean loadScreen(SCENE scene, String resource) {
+    private Node loadScreen(SCENE scene) {
         try {
-            FXMLLoader myLoader = new FXMLLoader(getClass().getResource(resource));
-            Parent loadScreen = (Parent) myLoader.load();
-            FXChildScene myScreenControler
-                = ((FXChildScene) myLoader.getController());
+            FXMLLoader myLoader = scene.buildLoader();
+            Parent loadScreen = myLoader.load();
+            FXChildScene myScreenControler = myLoader.getController();
             myScreenControler.setFXSceneManager(this);
-            loadScreen.getStylesheets().add("/styles/Styles.css");
-            addScreen(scene, loadScreen);
-            return true;
+            loadScreen.getStylesheets().add(STYLESHEET_PATH);
+            return loadScreen;
         } catch (IOException e) {
-            System.out.println(e.getMessage());
-            return false;
+            LOGGER.error(String.format("Error loading scene %s", scene.toString()), e);
+            return null;
         }
     }
 
-    public void addScreen(SCENE scene, Node screen) {
+    private void addScreen(SCENE scene, Node screen) {
         scenes.put(scene, screen);
     }
 
-    public boolean setScene(final SCENE scene) {
+    boolean setScene(final SCENE scene) {
+        Node screen = scenes.computeIfAbsent(scene, this::loadScreen);
         // If there is already a screen loaded
-        if (scenes.get(scene) != null) {
+        if (screen != null) {
             //If there is an existing scene remove it first
             if (!getChildren().isEmpty()) {
                 //remove displayed screen
@@ -62,10 +75,10 @@ public class FXSceneManager extends StackPane {
             }
 
             //add new screen
-            getChildren().add(0, scenes.get(scene));
+            getChildren().add(0, screen);
             return true;
         } else {
-            System.out.println("screen hasn't been loaded!\n");
+            LOGGER.error("Could not load scene {}", scene.toString());
             return false;
         }
     }
