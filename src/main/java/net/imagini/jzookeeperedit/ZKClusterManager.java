@@ -6,10 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.naming.OperationNotSupportedException;
@@ -72,6 +69,13 @@ public class ZKClusterManager {
     
     public static CuratorFramework getClient(String clusterName) {
         return zkClients.get(clusterName);
+    }
+
+    public static Optional<String> getFriendlyName(CuratorFramework curatorFramework) {
+        return zkClients.entrySet().stream()
+                .filter(entry -> curatorFramework.equals(entry.getValue()))
+                .map(Map.Entry::getKey)
+                .findFirst();
     }
     
     public static void dumpConnectionDetails() throws IOException {
