@@ -1,16 +1,6 @@
 package net.imagini.jzookeeperedit.FXController;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.text.MessageFormat;
-import java.util.ResourceBundle;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
@@ -20,6 +10,7 @@ import javafx.scene.control.Accordion;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
@@ -48,8 +39,25 @@ import org.controlsfx.control.decoration.Decorator;
 import org.controlsfx.control.decoration.StyleClassDecoration;
 import org.controlsfx.dialog.ExceptionDialog;
 import org.controlsfx.dialog.Wizard;
-import org.controlsfx.dialog.Wizard.WizardPane;
+import org.controlsfx.dialog.WizardPane;
+import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
+
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.text.MessageFormat;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.ResourceBundle;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 
 public class FXMLServerBrowser implements Initializable, FXChildScene {
@@ -67,6 +75,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
     @FXML private Button btnSave;
     @FXML private TreeView<ZKNode> browser;
     @FXML private Accordion accordionData;
+    @FXML private TitledPane paneData;
 
     @FXML private Label labcZxid;
     @FXML private Label labctime;
@@ -137,19 +146,19 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
             }
         });
         browser.setRoot(new TreeItem<>(new ZKNode(null, "Servers")));
-        ZKClusterManager.getClusters().forEach((key, val) -> {
-            addClusterToTree(val, key);
-        });
+        ZKClusterManager.getClusters().forEach(this::addClusterToTree);
 
         browser.setOnMouseClicked((MouseEvent mouseEvent) -> {
-            TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
+            TreeItem<ZKNode> item = getSelectedItem();
             text.clear();
             updateValidUIOptions(item);
             updateMetaData();
 
+            paneData.setText("Data - Not Loaded, double click node to load");
             if (mouseEvent.getClickCount() == 2) {
                 if (item instanceof ZKTreeNode) {
                     loadData((ZKTreeNode) item);
+                    paneData.setText(String.format("Data - Loaded at %s", LocalDateTime.now().toString()));
                 }
             }
         });
@@ -161,17 +170,15 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                     if (oldPane != null) {
                         oldPane.setCollapsible(true);
                     }
-                    if (newPane != null) {
-                        if (newPane.getId().equals("paneMetadata")) {
-                            updateMetaData();
-                        }
+                    if (newPane != null && "paneMetadata".equals(newPane.getId())) {
+                        updateMetaData();
                     }
                 }
         );
     }
 
     private void updateMetaData() {
-        TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
+        TreeItem<ZKNode> item = getSelectedItem();
         if (item instanceof ZKTreeNode) {
             Stat stat = ((ZKTreeNode) item).getStat().orElse(null);
             if (stat != null) {
@@ -190,17 +197,25 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
         }
     }
 
+    /**
+     * Later versions of JavaFX8 prevent validators working when set imperatively.
+     * See https://bitbucket.org/controlsfx/controlsfx/issues/539/multiple-dialog-fields-with-validation
+     */
+    private void addLazyValidator(ValidationSupport validationSupport, Control control, Validator<?> validator) {
+        Platform.runLater(() -> validationSupport.registerValidator(control, validator));
+    }
+
     @FXML
     private void addServer(ActionEvent event) {
         Wizard newClusterWizard = new Wizard(null, "Add new cluster");
+        ValidationSupport validationSupport = new ValidationSupport();
 
         WizardPane friendlyNamePane = new WizardPane();
         friendlyNamePane.setHeaderText("Please provide a friendly name for this cluster");
         TextField txtFriendlyName = new TextField("localhost");
         txtFriendlyName.setId("friendlyName");
-        newClusterWizard.getValidationSupport()
-                .registerValidator(txtFriendlyName,
-                        Validator.createEmptyValidator("Friendly Name is mandatory"));
+        txtFriendlyName.setMinWidth(50);
+        addLazyValidator(validationSupport, txtFriendlyName, Validator.createEmptyValidator("Friendly Name is mandatory"));
         FlowPane friendlyNameContentPane = new FlowPane(10, 10);
         friendlyNameContentPane.getChildren().add(txtFriendlyName);
         friendlyNamePane.setContent(friendlyNameContentPane);
@@ -210,13 +225,14 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
         TextField txtZkConnect = new TextField("localhost:2181");
         txtZkConnect.setId("zkConnectString");
         txtZkConnect.setMinWidth(100);
-        newClusterWizard.getValidationSupport()
-                .registerValidator(txtZkConnect,
-                        Validator.createEmptyValidator("Connection string is mandatory"));
+        addLazyValidator(validationSupport, txtZkConnect, Validator.createEmptyValidator("Connection string is mandatory"));
         FlowPane zkConnectContentPane = new FlowPane(10, 10);
         zkConnectContentPane.getChildren().add(txtZkConnect);
         zkConnectPane.setContent(zkConnectContentPane);
 
+        ArrayList<WizardPane> a = new ArrayList<>();
+        a.add(friendlyNamePane);
+        a.add(zkConnectPane);
         newClusterWizard.setFlow(new Wizard.LinearFlow(friendlyNamePane, zkConnectPane));
         ButtonType result = newClusterWizard.showAndWait().orElse(null);
 
@@ -251,10 +267,10 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
         String friendlyName = String.valueOf(newClusterWizard.getSettings().get(txtFriendlyName.getId()));
         String zkConnect = String.valueOf(newClusterWizard.getSettings().get(txtZkConnect.getId()));
         CuratorFramework zkClient = ZKClusterManager.addclient(friendlyName, zkConnect);
-        addClusterToTree(zkClient, friendlyName);
+        addClusterToTree(friendlyName, zkClient);
     }
 
-    private void addClusterToTree(CuratorFramework zkClient, String friendlyName) {
+    private void addClusterToTree(String friendlyName, CuratorFramework zkClient) {
         browser.getRoot().getChildren().add(new ZKTreeNode(
                 zkClient,
                 friendlyName,
@@ -266,7 +282,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
 
     @FXML
     private void save() {
-        TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
+        TreeItem<ZKNode> item = getSelectedItem();
 
         if (item instanceof ZKTreeNode) {
             if (((ZKTreeNode) item).save(text.getText().getBytes())) { //TODO: Enforce charset
@@ -307,7 +323,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                     ButtonType.OK).showAndWait();
                 return;
             }
-            TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
+            TreeItem<ZKNode> item = getSelectedItem();
             if (item instanceof ZKTreeNode) {
                 try {
                     ZKTreeNode treeNode = (ZKTreeNode) item;
@@ -342,7 +358,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                     ButtonType.OK).showAndWait();
                 return;
             }
-            TreeItem<ZKNode> parent = browser.getSelectionModel().getSelectedItem().getParent();
+            TreeItem<ZKNode> parent = getSelectedItem().getParent();
             if (parent instanceof ZKTreeNode) {
                 try {
                     ZKTreeNode treeNode = (ZKTreeNode) parent;
@@ -367,12 +383,12 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
 
     @FXML
     private void deleteNode() {
-        TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
+        TreeItem<ZKNode> item = getSelectedItem();
         if (item instanceof ZKTreeNode) {
             ZKTreeNode treeNode = (ZKTreeNode) item;
             if (treeNode.getCanonicalPath().equals("/")){
                 new Alert(Alert.AlertType.ERROR,
-                    "You cant have a ZKNode without a name",
+                    "You cant delete the ZK root",
                     ButtonType.OK).showAndWait();
                 return;
             }
@@ -382,32 +398,34 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
             confirmDelete.setTitle("Deleting Node");
             confirmDelete.setHeaderText("Deleting " + treeNode.getCanonicalPath());
             confirmDelete.setContentText("Are you sure you want to delete this node and all of its children");
-            confirmDelete.showAndWait().ifPresent(buttonType -> {
-                if (buttonType.equals(ButtonType.YES)){
-                    try {
-                        treeNode.getValue().getClient().delete().guaranteed()
-                                .deletingChildrenIfNeeded().forPath(treeNode.getCanonicalPath());
-                        browser.getSelectionModel().selectPrevious();
-                        TreeItem<ZKNode> deletedNodeParent = treeNode.getParent();
-                        if (deletedNodeParent instanceof ZKTreeNode) {
-                            ZKTreeNode parentTreeNode = (ZKTreeNode) deletedNodeParent;
-                            parentTreeNode.setChildrenCacheIsDirty();
-                            parentTreeNode.getChildren().remove(item);
-                            new Alert(Alert.AlertType.INFORMATION,
-                            MessageFormat.format("Removed node {0}", treeNode.getCanonicalPath()),
-                                ButtonType.OK).showAndWait();
-                            parentTreeNode.loadChildren();
-                            updateMetaData();
-                        }
-                    } catch (Exception zookeeperClientException) {
-                        LOGGER.log(Level.SEVERE, "Deleting Node failed", zookeeperClientException);
-                        ExceptionDialog exceptionDialog = new ExceptionDialog(zookeeperClientException);
-                        exceptionDialog.setTitle("Deleting Node failed");
-                        exceptionDialog.setHeaderText("Failed to delete: " + treeNode.getCanonicalPath());
-                        exceptionDialog.showAndWait();
-                    }
-                }
-            });
+            confirmDelete.showAndWait()
+                    .filter(ButtonType.YES::equals)
+                    .ifPresent((yes) -> performDelete(treeNode));
+        }
+    }
+
+    public void performDelete(ZKTreeNode treeNode) {
+        try {
+            treeNode.getValue().getClient().delete().guaranteed()
+                    .deletingChildrenIfNeeded().forPath(treeNode.getCanonicalPath());
+            browser.getSelectionModel().selectPrevious();
+            TreeItem<ZKNode> deletedNodeParent = treeNode.getParent();
+            if (deletedNodeParent instanceof ZKTreeNode) {
+                ZKTreeNode parentTreeNode = (ZKTreeNode) deletedNodeParent;
+                parentTreeNode.setChildrenCacheIsDirty();
+                parentTreeNode.getChildren().remove(treeNode);
+                new Alert(Alert.AlertType.INFORMATION,
+                        MessageFormat.format("Removed node {0}", treeNode.getCanonicalPath()),
+                        ButtonType.OK).showAndWait();
+                parentTreeNode.loadChildren();
+                FXMLServerBrowser.this.updateMetaData();
+            }
+        } catch (Exception zookeeperClientException) {
+            LOGGER.log(Level.SEVERE, "Deleting Node failed", zookeeperClientException);
+            ExceptionDialog exceptionDialog = new ExceptionDialog(zookeeperClientException);
+            exceptionDialog.setTitle("Deleting Node failed");
+            exceptionDialog.setHeaderText("Failed to delete: " + treeNode.getCanonicalPath());
+            exceptionDialog.showAndWait();
         }
     }
 
@@ -418,11 +436,9 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
         regexDialog.setHeaderText("Please provide a regex to filter children by");
         regexDialog.showAndWait().ifPresent(regexString -> {
             Pattern regex = Pattern.compile(regexString);
-            TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
+            TreeItem<ZKNode> item = getSelectedItem();
             if (item instanceof ZKTreeNode) {
-                //item.getParent().setExpanded(false);
                 ((ZKTreeNode) item).loadChildren(regex.asPredicate());
-                //item.getParent().setExpanded(true);
             }
         });
     }
@@ -443,7 +459,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
         filterPane.setContent(filterContentPane);
 
         // Confirm list
-        TreeItem<ZKNode> item = browser.getSelectionModel().getSelectedItem();
+        TreeItem<ZKNode> item = getSelectedItem();
 
         ListView<String> childrenToBeRemoved = new ListView<>(FXCollections
                 .observableList(item
@@ -528,11 +544,58 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
 
     @FXML
     private void doUnfilterChildren() {
-        TreeItem<ZKNode> selectedItem = browser.getSelectionModel().getSelectedItem();
+        TreeItem<ZKNode> selectedItem = getSelectedItem();
         if (selectedItem instanceof ZKTreeNode) {
             loadData((ZKTreeNode) selectedItem);
         }
         browser.getSelectionModel().select(selectedItem);
+    }
+
+    private String getPathFromNodeWithClusterPrefix(TreeItem<ZKNode> selectedItem) {
+        return selectedItem == null
+                ? ""
+                : ZKClusterManager.getFriendlyName(selectedItem.getValue().getClient()).orElse("")
+                + getPathFromNode(selectedItem);
+    }
+
+    private String getPathFromNode(TreeItem<ZKNode> node) {
+        return node == null
+                ? ""
+                : node instanceof ZKTreeNode
+                    ? ((ZKTreeNode) node).getCanonicalPath()
+                    : node.getValue().toString();
+    }
+
+    @FXML
+    private void doGoto() {
+        TextInputDialog dialog = new TextInputDialog(getPathFromNodeWithClusterPrefix(getSelectedItem()));
+        dialog.setTitle("Goto Node");
+        dialog.setHeaderText("Jump to another node anywhere in the tree");
+        dialog.setContentText("Target path");
+        dialog.showAndWait().ifPresent(this::navigateTo);
+    }
+
+    private TreeItem<ZKNode> getSelectedItem() {
+        return browser.getSelectionModel().getSelectedItem();
+    }
+
+    private void navigateTo(String path) {
+        String[] pathElements = path.split("/");
+        int rootOffset = pathElements[0].isEmpty() ? 1 : 0;
+        TreeItem<ZKNode> root = getChild(browser.getRoot(), pathElements[rootOffset]);
+        if (root != null) {
+            browser.getSelectionModel().select(Arrays.stream(pathElements).skip(rootOffset + 1).reduce(root, this::getChild, (a,b) -> b));
+        }
+    }
+
+    private TreeItem<ZKNode> getChild(TreeItem<ZKNode> parent, String pathElement) {
+        if (parent != null) {
+            Optional<TreeItem<ZKNode>> matchingChild = parent.getChildren().stream()
+                     .filter((node) -> pathElement.equals(node.getValue().toString())).findFirst();
+            matchingChild.ifPresent((node) -> node.setExpanded(true));
+            return matchingChild.orElse(null);
+        }
+        return null;
     }
 
     private void updateValidUIOptions(TreeItem<ZKNode> item) {
