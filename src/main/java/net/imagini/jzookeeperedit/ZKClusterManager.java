@@ -7,19 +7,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.naming.OperationNotSupportedException;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author dlowe
  */
 public class ZKClusterManager {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ZKClusterManager.class);
     private static final RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 5, 5000);
     private static final Map<String, CuratorFramework> zkClients = new HashMap<>(10);
     private static final Properties properties = new Properties();
@@ -36,32 +37,21 @@ public class ZKClusterManager {
             try {
                 clusterConfigFile.createNewFile();
             } catch (IOException ex) {
-                Logger.getLogger(ZKClusterManager.class.getName()).log(
-                        Level.SEVERE,
-                        "Failed to create user cluster config file: " 
-                                + clusterConfigFile.getAbsolutePath(),
-                        ex);
+                LOGGER.error(String.format("Failed to create user cluster config file: %s", clusterConfigFile.getAbsolutePath()), ex);
             }
         }
         InputStream input;
         try {
             input = new FileInputStream(clusterConfigFile);
             properties.load(input);
-            properties.forEach((Object key, Object val) -> {
-                addclient((String) key, (String) val);
-            });
+            properties.forEach((Object key, Object val) -> addclient((String) key, (String) val));
         } catch (IOException ex) {
-            Logger.getLogger(ZKClusterManager.class.getName()).log(
-                    Level.SEVERE,
-                    "Failed to read user cluster config file: "
-                            + clusterConfigFile.getAbsolutePath(),
-                    ex);
+            LOGGER.error(String.format("Failed to read user cluster config file: %s", clusterConfigFile.getAbsolutePath()), ex);
         }
     }
     
     public static CuratorFramework addclient(String friendlyName, String connectionString) {
         CuratorFramework client = CuratorFrameworkFactory.newClient(connectionString, retryPolicy);
-        //client.start();
         zkClients.put(friendlyName, client);
         properties.put(friendlyName, connectionString);
         return client;

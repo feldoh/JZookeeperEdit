@@ -42,6 +42,8 @@ import org.controlsfx.dialog.Wizard;
 import org.controlsfx.dialog.WizardPane;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -54,15 +56,14 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 
 public class FXMLServerBrowser implements Initializable, FXChildScene {
 
-    private static final Logger LOGGER = Logger.getLogger(FXMLServerBrowser.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(FXMLServerBrowser.class);
     private static final byte[] EMPTY_BYTES = "".getBytes();
     private static final Decoration FILTERED_DECORATION = new StyleClassDecoration(
             "tree-cell-filtered");
@@ -76,6 +77,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
     @FXML private TreeView<ZKNode> browser;
     @FXML private Accordion accordionData;
     @FXML private TitledPane paneData;
+    @FXML private TitledPane paneMetadata;
 
     @FXML private Label labcZxid;
     @FXML private Label labctime;
@@ -138,8 +140,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                     }
 
                     private boolean hasStringChanged(String oldString, String newString) {
-                        LOGGER.log(Level.FINEST, "Rendered TreeCell: {0} -> {1}",
-                                new String[]{String.valueOf(oldString), String.valueOf(newString)});
+                        LOGGER.debug("Rendered TreeCell: {} -> {}", String.valueOf(oldString), String.valueOf(newString));
                         return oldString == null ? newString != null : !oldString.equals(newString);
                     }
                 };
@@ -170,7 +171,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                     if (oldPane != null) {
                         oldPane.setCollapsible(true);
                     }
-                    if (newPane != null && "paneMetadata".equals(newPane.getId())) {
+                    if (newPane != null && paneMetadata == newPane) {
                         updateMetaData();
                     }
                 }
@@ -249,7 +250,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                 | IllegalAccessException
                 | IllegalArgumentException
                 | InvocationTargetException reflectionException) {
-            LOGGER.log(Level.SEVERE, "Attempt to access Wizard internal settings failed.", reflectionException);
+            LOGGER.error("Attempt to access Wizard internal settings failed.", reflectionException);
             new Alert(Alert.AlertType.ERROR,
                     "Failed to grab data from wizard. Please try again",
                     ButtonType.OK).showAndWait();
@@ -257,10 +258,9 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
         }
 
         if (result == ButtonType.FINISH) {
-            LOGGER.log(Level.INFO, "New Cluster Wizard finished, settings were: {0}",
-                newClusterWizard.getSettings());
+            LOGGER.info("New Cluster Wizard finished, settings were: {}", newClusterWizard.getSettings());
         } else if (result == ButtonType.CANCEL) {
-                LOGGER.log(Level.INFO, "Cancelled adding cluster");
+                LOGGER.info("Cancelled adding cluster");
                 return;
         }
 
@@ -302,7 +302,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
         try {
             ZKClusterManager.dumpConnectionDetails();
         } catch (IOException writeFailedException) {
-            LOGGER.log(Level.SEVERE, "Failed to write server details to disk", writeFailedException);
+            LOGGER.error("Failed to write server details to disk", writeFailedException);
             ExceptionDialog exceptionDialog = new ExceptionDialog(writeFailedException);
             exceptionDialog.setTitle("Exporting Server Details Failed");
             exceptionDialog.setHeaderText("Unable to write config file to\n"
@@ -336,7 +336,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                     item.getValue().getClient().create().forPath(nodePathBuilder.toString(), EMPTY_BYTES);
                     treeNode.loadChildren();
                 } catch (Exception zookeeperClientException) {
-                    LOGGER.log(Level.SEVERE, "Adding Child Node failed", zookeeperClientException);
+                    LOGGER.error("Adding Child Node failed", zookeeperClientException);
                     ExceptionDialog exceptionDialog = new ExceptionDialog(zookeeperClientException);
                     exceptionDialog.setTitle("Adding Child Node failed");
                     exceptionDialog.setHeaderText("Failed to add: " + nodeLabel);
@@ -371,7 +371,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                     parent.getValue().getClient().create().forPath(nodePathBuilder.toString(), EMPTY_BYTES);
                     treeNode.loadChildren();
                 } catch (Exception zookeeperClientException) {
-                    LOGGER.log(Level.SEVERE, "Adding Sibling Node failed", zookeeperClientException);
+                    LOGGER.error("Adding Sibling Node failed", zookeeperClientException);
                     ExceptionDialog exceptionDialog = new ExceptionDialog(zookeeperClientException);
                     exceptionDialog.setTitle("Adding Sibling Node failed");
                     exceptionDialog.setHeaderText("Failed to add: " + nodeLabel);
@@ -404,7 +404,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
         }
     }
 
-    public void performDelete(ZKTreeNode treeNode) {
+    private void performDelete(ZKTreeNode treeNode) {
         try {
             treeNode.getValue().getClient().delete().guaranteed()
                     .deletingChildrenIfNeeded().forPath(treeNode.getCanonicalPath());
@@ -415,13 +415,13 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                 parentTreeNode.setChildrenCacheIsDirty();
                 parentTreeNode.getChildren().remove(treeNode);
                 new Alert(Alert.AlertType.INFORMATION,
-                        MessageFormat.format("Removed node {0}", treeNode.getCanonicalPath()),
+                        MessageFormat.format("Removed node {}", treeNode.getCanonicalPath()),
                         ButtonType.OK).showAndWait();
                 parentTreeNode.loadChildren();
                 FXMLServerBrowser.this.updateMetaData();
             }
         } catch (Exception zookeeperClientException) {
-            LOGGER.log(Level.SEVERE, "Deleting Node failed", zookeeperClientException);
+            LOGGER.error("Deleting Node failed", zookeeperClientException);
             ExceptionDialog exceptionDialog = new ExceptionDialog(zookeeperClientException);
             exceptionDialog.setTitle("Deleting Node failed");
             exceptionDialog.setHeaderText("Failed to delete: " + treeNode.getCanonicalPath());
@@ -434,13 +434,19 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
         TextInputDialog regexDialog = new TextInputDialog(".*");
         regexDialog.setTitle("Filter Node Children");
         regexDialog.setHeaderText("Please provide a regex to filter children by");
-        regexDialog.showAndWait().ifPresent(regexString -> {
+        regexDialog.showAndWait().ifPresent(this::filterChildrenOfSelectedNode);
+    }
+
+    private void filterChildrenOfSelectedNode(String regexString) {
+        try {
             Pattern regex = Pattern.compile(regexString);
             TreeItem<ZKNode> item = getSelectedItem();
             if (item instanceof ZKTreeNode) {
                 ((ZKTreeNode) item).loadChildren(regex.asPredicate());
             }
-        });
+        } catch (PatternSyntaxException invalidRegexException) {
+            LOGGER.error(String.format("Pattern '%s' is not a valid regex", regexString), invalidRegexException);
+        }
     }
 
     @FXML
@@ -476,7 +482,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                 childrenToBeRemoved.setItems(childrenToBeRemoved
                         .getItems().filtered(regex.asPredicate()));
                 this.setHeaderText(MessageFormat.format(
-                        "Confirm that you want to delete this list of {0} child nodes from the currently selected node",
+                        "Confirm that you want to delete this list of {} child nodes from the currently selected node",
                         childrenToBeRemoved.getItems().size()));
             }
         };
@@ -500,8 +506,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                                     .deletingChildrenIfNeeded()
                                     .inBackground((CuratorFramework cf, CuratorEvent ce) -> {
                                         if (ce.getType().equals(CuratorEventType.DELETE)) {
-                                            LOGGER.log(Level.INFO, "Result code {0} while deleting: {1}",
-                                                    new String[]{String.valueOf(ce.getResultCode()), ce.getPath()});
+                                            LOGGER.info("Result code {} while deleting: {}", String.valueOf(ce.getResultCode()), ce.getPath());
                                             synchronized(lock) {
                                                 if (outstandingDeletions.decrementAndGet() == 0) {
                                                     lock.notifyAll();
@@ -513,7 +518,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                                                     ? label
                                                     : "/".concat(label)));
                         } catch (Exception deletionException) {
-                            LOGGER.log(Level.SEVERE, "Failed to delete all marked nodes", deletionException);
+                            LOGGER.error("Failed to delete all marked nodes", deletionException);
                         }
                     });
                     parentTreeNode.setChildrenCacheIsDirty();
@@ -534,7 +539,7 @@ public class FXMLServerBrowser implements Initializable, FXChildScene {
                                 }
                             }
                         } catch (InterruptedException ex) {
-                            LOGGER.log(Level.INFO, "Interrupted during deletion", ex);
+                            LOGGER.info("Interrupted during deletion", ex);
                         }
                     }
                 }

@@ -7,7 +7,6 @@ import javafx.stage.Stage;
 
 
 public class MainApp extends Application {
-
     private Stage stage;
     
     @Override 
@@ -18,8 +17,6 @@ public class MainApp extends Application {
     
     private void setup() {
         FXSceneManager mainContainer = new FXSceneManager();
-        mainContainer.loadScreen(FXSceneManager.SCENE.SERVER_BROWSER, 
-                            "/fxml/ServerBrowser.fxml");
         mainContainer.setScene(FXSceneManager.SCENE.SERVER_BROWSER);
         
         AnchorPane root = new AnchorPane();
