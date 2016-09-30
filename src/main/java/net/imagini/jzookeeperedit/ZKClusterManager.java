@@ -51,10 +51,14 @@ public class ZKClusterManager {
     }
     
     public static CuratorFramework addclient(String friendlyName, String connectionString) {
-        CuratorFramework client = CuratorFrameworkFactory.newClient(connectionString, retryPolicy);
+        CuratorFramework client = buildClient(connectionString);
         zkClients.put(friendlyName, client);
         properties.put(friendlyName, connectionString);
         return client;
+    }
+
+    public static CuratorFramework buildClient(String connectionString) {
+        return CuratorFrameworkFactory.newClient(connectionString, retryPolicy);
     }
     
     public static CuratorFramework getClient(String clusterName) {

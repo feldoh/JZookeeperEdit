@@ -1,16 +1,11 @@
 package net.imagini.jzookeeperedit;
 
-import java.util.concurrent.TimeUnit;
-
-import org.apache.curator.framework.CuratorFramework;
-
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import net.imagini.zkcli.CliParameters;
-
-import com.beust.jcommander.JCommander;
+import net.imagini.zkcli.ZkCli;
 
 
 public class MainApp extends Application {
@@ -29,50 +24,18 @@ public class MainApp extends Application {
      */
     private void preInit() {
         final Parameters rawParams = getParameters();
-        CliParameters params = new CliParameters();
-        new JCommander(params, rawParams.getRaw().toArray(new String[rawParams.getRaw().size()]));
-        if (params.cluster != null) {
-            try(CuratorFramework client = ZKClusterManager.getClient(params.cluster)) {
-                while(true) {
-                    try {
-                        client.start();
-                        if (!client.blockUntilConnected(10, TimeUnit.SECONDS)) {
-                            throw new IllegalStateException("Could not connect to named cluster " + params.cluster + " within timeout. Check your connections.");
-                        }
-                        break;
-                    } catch (InterruptedException e) {
-                        System.err.println("Interrupted while trying to connect, retrying");
-                    }
-                }
-                System.err.println("Established connection to " + params.cluster);
-                if (params.getData) {
-                    params.parameters.forEach(path -> printPathData(client, path));
-                }
-                if (params.getChildData) {
-                    params.parameters.forEach(path -> {
-                        try {
-                            client.getChildren()
-                                    .forPath(path)
-                                    .forEach(child -> printPathData(client, path + "/" + child));
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    });
-                }
-            } catch (Exception e) {
-                throw new IllegalStateException("Error encountered during CLI operation", e);
+        CliParameters params = new CliParameters(rawParams.getRaw().toArray(new String[rawParams.getRaw().size()]));
+        if (params.includesAction()) {
+            try {
+                new ZkCli(params).run();
+            } catch (Exception ex) {
+                //Avoid spamming logs in CLI mode
+                System.err.println(ex.getMessage());
+                System.exit(1);
             }
             System.exit(0);
         }
     }
-
-        private void printPathData(CuratorFramework client, String path) {
-            try {
-                System.out.println(new String(client.getData().forPath(path)));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
 
     private void setup() {
         FXSceneManager mainContainer = new FXSceneManager();
