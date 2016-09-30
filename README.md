@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/feldoh/JZookeeperEdit.svg?branch=master)](https://travis-ci.org/feldoh/JZookeeperEdit)
+[![Download](https://api.bintray.com/packages/feldoh/JZookeeperEdit/JZookeeperEdit/images/download.svg) ](https://bintray.com/feldoh/JZookeeperEdit/JZookeeperEdit/_latestVersion)
 [![Stories in Ready](https://badge.waffle.io/feldoh/JZookeeperEdit.png?label=ready&title=Ready)](https://waffle.io/feldoh/JZookeeperEdit)
 JZookeeperEdit
 ==============
@@ -13,8 +15,8 @@ where it will save details of servers you connect to if you click "Save Cluster 
 
 Get a pre-built Binary
 ======================
-Pre-built binaries are available for most common platforms on [Bintray](https://bintray.com/feldoh/JZookeeperEdit/JZookeeperEdit)<br>
-[ ![Download](https://api.bintray.com/packages/feldoh/JZookeeperEdit/JZookeeperEdit/images/download.svg) ](https://bintray.com/feldoh/JZookeeperEdit/JZookeeperEdit/_latestVersion)
+Pre-built binaries are available for most common platforms on [Bintray](https://bintray.com/feldoh/JZookeeperEdit/JZookeeperEdit)
+
 
 Requirements
 ==============
