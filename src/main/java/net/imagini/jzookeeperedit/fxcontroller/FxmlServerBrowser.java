@@ -58,11 +58,10 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
-
 public class FxmlServerBrowser implements Initializable, FxChildScene {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FxmlServerBrowser.class);
-    private static final Charset CHARSET = Charset.forName("UTF-8");
+    private static final Charset CHARSET = java.nio.charset.StandardCharsets.UTF_8;
     private static final byte[] EMPTY_BYTES = "".getBytes(CHARSET);
 
     private FxSceneManager fxSceneManager;

@@ -9,13 +9,14 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class ZkTreeNode extends TreeItem<ZkNode> {
-    public static final String CHARSET_NAME = "UTF-8";
+    private static final Charset CHARSET = java.nio.charset.StandardCharsets.UTF_8;
     private static Logger LOGGER = LoggerFactory.getLogger(ZkTreeNode.class);
     private static final Predicate<String> TRUE_PREDICATE = str -> true;
 
@@ -164,7 +165,7 @@ public class ZkTreeNode extends TreeItem<ZkNode> {
         }
         try {
             byte[] data = getClient().getData().forPath(path);
-            return data == null ? "" : new String(data, CHARSET_NAME);
+            return data == null ? "" : new String(data, CHARSET);
         } catch (Exception ex) {
             LOGGER.error(String.format("Error while retrieving data for %s", getCanonicalPath()), ex);
             return "";//TODO pop up an error
