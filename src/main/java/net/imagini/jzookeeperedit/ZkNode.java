@@ -2,15 +2,11 @@ package net.imagini.jzookeeperedit;
 
 import org.apache.curator.framework.CuratorFramework;
 
-/**
- *
- * @author dlowe
- */
-public class ZKNode {
+public class ZkNode {
     private final CuratorFramework zkClient;
     private String label;
     
-    public ZKNode(CuratorFramework zkClient, String label) {
+    public ZkNode(CuratorFramework zkClient, String label) {
         this.zkClient = zkClient;
         this.label = label;
     }

@@ -1,7 +1,6 @@
 package net.imagini.jzookeeperedit;
 
 import javafx.application.Application;
-import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
@@ -16,12 +15,12 @@ public class MainApp extends Application {
     }
     
     private void setup() {
-        FXSceneManager mainContainer = new FXSceneManager();
-        mainContainer.setScene(FXSceneManager.SCENE.SERVER_BROWSER);
+        FxSceneManager mainContainer = new FxSceneManager();
+        mainContainer.setScene(FxSceneManager.Scene.SERVER_BROWSER);
         
         AnchorPane root = new AnchorPane();
         root.getChildren().addAll(mainContainer); 
-        Scene scene = new Scene(root); 
+        javafx.scene.Scene scene = new javafx.scene.Scene(root);
         stage.setScene(scene); 
         stage.show(); 
     }
