@@ -1,29 +1,33 @@
 package net.imagini.jzookeeperedit;
 
 import javafx.application.Application;
-import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
 
 public class MainApp extends Application {
-    private Stage stage;
+    private Stage primaryStage;
     
     @Override 
-    public void start(Stage primaryStage) { 
-        this.stage = primaryStage;
+    public final void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
         setup();
     }
     
     private void setup() {
-        FXSceneManager mainContainer = new FXSceneManager();
-        mainContainer.setScene(FXSceneManager.SCENE.SERVER_BROWSER);
+        FxSceneManager mainContainer = new FxSceneManager();
+        mainContainer.setScene(FxSceneManager.Scene.SERVER_BROWSER);
         
         AnchorPane root = new AnchorPane();
         root.getChildren().addAll(mainContainer); 
-        Scene scene = new Scene(root); 
-        stage.setScene(scene); 
-        stage.show(); 
+        javafx.scene.Scene scene = new javafx.scene.Scene(root);
+
+        if (primaryStage == null) {
+            throw new IllegalStateException("Primary stage not set - Unable to display scene on primary primaryStage.");
+        } else {
+            primaryStage.setScene(scene);
+            primaryStage.show();
+        }
     }
 
     /**
