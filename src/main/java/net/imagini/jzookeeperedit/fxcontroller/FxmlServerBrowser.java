@@ -17,26 +17,22 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TitledPane;
-import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
-import javafx.util.Callback;
 import net.imagini.jzookeeperedit.FxChildScene;
 import net.imagini.jzookeeperedit.FxSceneManager;
 import net.imagini.jzookeeperedit.ZkClusterManager;
 import net.imagini.jzookeeperedit.ZkNode;
 import net.imagini.jzookeeperedit.ZkTreeNode;
+import net.imagini.jzookeeperedit.fxview.ZkTreeNodeCellFactory;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.CuratorEvent;
 import org.apache.curator.framework.api.CuratorEventType;
 import org.apache.zookeeper.data.Stat;
-import org.controlsfx.control.decoration.Decoration;
-import org.controlsfx.control.decoration.Decorator;
-import org.controlsfx.control.decoration.StyleClassDecoration;
 import org.controlsfx.dialog.ExceptionDialog;
 import org.controlsfx.dialog.Wizard;
 import org.controlsfx.dialog.WizardPane;
@@ -49,6 +45,9 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -63,9 +62,8 @@ import java.util.stream.Collectors;
 public class FxmlServerBrowser implements Initializable, FxChildScene {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FxmlServerBrowser.class);
-    private static final byte[] EMPTY_BYTES = "".getBytes();
-    private static final Decoration FILTERED_DECORATION = new StyleClassDecoration(
-            "tree-cell-filtered");
+    private static final Charset CHARSET = Charset.forName("UTF-8");
+    private static final byte[] EMPTY_BYTES = "".getBytes(CHARSET);
 
     private FxSceneManager fxSceneManager;
 
@@ -96,56 +94,14 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
     }
 
     private void loadData(ZkTreeNode treeNode) {
-        String data = treeNode.getData();
-        if (data == null) {
-            text.setText("");
-            text.setDisable(true);
-        } else {
-            text.setText(data);
-            text.setDisable(false);
-        }
+        text.setText(treeNode.getData());
+        text.setDisable(false);
         treeNode.loadChildren();
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        browser.setCellFactory(new Callback<TreeView<ZkNode>, TreeCell<ZkNode>>() {
-            @Override
-            public TreeCell<ZkNode> call(TreeView<ZkNode> param) {
-                return new TreeCell<ZkNode>() {
-                    @Override
-                    protected void updateItem(ZkNode item, boolean empty) {
-                        super.updateItem(item, empty);
-
-                        if (!empty) {
-                            if (this.getTreeItem() instanceof ZkTreeNode) {
-                                if (((ZkTreeNode) this.getTreeItem()).isFiltered()) {
-                                    Decorator.addDecoration(this, FILTERED_DECORATION);
-                                } else {
-                                    Decorator.removeDecoration(this, FILTERED_DECORATION);
-                                }
-                            }
-                            setTextIfChanged(item.toString());
-                        } else {
-                            this.setText(null);
-                            this.setGraphic(null);
-                        }
-                    }
-
-                    private void setTextIfChanged(String newText) {
-                        if (hasStringChanged(this.getText(), newText)) {
-                            this.setText(newText);
-                        }
-                    }
-
-                    private boolean hasStringChanged(String oldString, String newString) {
-                        LOGGER.debug("Rendered TreeCell: {} -> {}", String.valueOf(oldString),
-                                String.valueOf(newString));
-                        return oldString == null ? newString != null : !oldString.equals(newString);
-                    }
-                };
-            }
-        });
+        browser.setCellFactory(new ZkTreeNodeCellFactory());
         browser.setRoot(new TreeItem<>(new ZkNode(null, "Servers")));
         ZkClusterManager.getClusters().forEach(this::addClusterToTree);
 
@@ -206,8 +162,21 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
         Platform.runLater(() -> validationSupport.registerValidator(control, validator));
     }
 
+    private static class SetMethodAccessiblePrivilegedAction implements PrivilegedAction<Void> {
+        private final Method method;
+
+        SetMethodAccessiblePrivilegedAction(Method method) {
+            this.method = method;
+        }
+
+        public Void run() {
+            method.setAccessible(true);
+            return null;
+        }
+    }
+
     @FXML
-    private void addServer(ActionEvent event) {
+    void addServer(ActionEvent event) {
         final ValidationSupport validationSupport = new ValidationSupport();
 
         WizardPane friendlyNamePane = new WizardPane();
@@ -241,7 +210,7 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
         try {
             Method wizardUpdateSettingsMethod;
             wizardUpdateSettingsMethod = Wizard.class.getDeclaredMethod("readSettings", WizardPane.class);
-            wizardUpdateSettingsMethod.setAccessible(true);
+            AccessController.doPrivileged(new SetMethodAccessiblePrivilegedAction(wizardUpdateSettingsMethod));
             wizardUpdateSettingsMethod.invoke(newClusterWizard, zkConnectPane);
             zkConnectPane.onExitingPage(newClusterWizard);
         } catch (NoSuchMethodException
@@ -280,11 +249,11 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
     }
 
     @FXML
-    private void save() {
+    void save() {
         TreeItem<ZkNode> item = getSelectedItem();
 
         if (item instanceof ZkTreeNode) {
-            if (((ZkTreeNode) item).save(text.getText().getBytes())) { //TODO: Enforce charset
+            if (((ZkTreeNode) item).save(text.getText().getBytes(CHARSET))) {
                 new Alert(Alert.AlertType.INFORMATION,
                     "Your data has been written to Zookeeper",
                     ButtonType.OK).showAndWait();
@@ -297,7 +266,7 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
     }
 
     @FXML
-    private void saveServerInfo() {
+    void saveServerInfo() {
         try {
             ZkClusterManager.dumpConnectionDetails();
         } catch (IOException writeFailedException) {
@@ -311,7 +280,7 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
     }
 
     @FXML
-    private void addChild() {
+    void addChild() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Add Child");
         dialog.setHeaderText("Please enter a name for the ZkNode");
@@ -346,7 +315,7 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
     }
 
     @FXML
-    private void addSibling() {
+    void addSibling() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Add Sibling");
         dialog.setHeaderText("Please enter a name for the ZkNode");
@@ -381,7 +350,7 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
     }
 
     @FXML
-    private void deleteNode() {
+    void deleteNode() {
         TreeItem<ZkNode> item = getSelectedItem();
         if (item instanceof ZkTreeNode) {
             ZkTreeNode treeNode = (ZkTreeNode) item;
@@ -429,7 +398,7 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
     }
 
     @FXML
-    private void doFilterChildren() {
+    void doFilterChildren() {
         TextInputDialog regexDialog = new TextInputDialog(".*");
         regexDialog.setTitle("Filter Node Children");
         regexDialog.setHeaderText("Please provide a regex to filter children by");
@@ -448,8 +417,27 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
         }
     }
 
+    private static class FilteredNodeRemovalConfirmationWizardPane extends WizardPane {
+        private final ListView<String> condemmedList;
+        private final String filterFieldId;
+
+        FilteredNodeRemovalConfirmationWizardPane(ListView<String> condemmedList, String filterFieldId) {
+            this.condemmedList = condemmedList;
+            this.filterFieldId = filterFieldId;
+        }
+
+        @Override
+        public void onEnteringPage(Wizard wizard) {
+            Pattern regex = Pattern.compile(String.valueOf(wizard.getSettings().get(filterFieldId)));
+            condemmedList.setItems(condemmedList.getItems().filtered(regex.asPredicate()));
+            this.setHeaderText(MessageFormat.format(
+                    "Confirm that you want to delete this list of {} child nodes from the currently selected node",
+                    condemmedList.getItems().size()));
+        }
+    }
+
     @FXML
-    private void deleteChildrenWithFilter() {
+    void deleteChildrenWithFilter() {
         WizardPane filterPane = new WizardPane();
         filterPane.setHeaderText("Please provide a regex to filter children by.\n"
                 + "You will have an opportunity to back out");
@@ -476,18 +464,8 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
         GridPane.setVgrow(childrenToBeRemoved, Priority.ALWAYS);
         GridPane confirmationContentPane = new GridPane();
         confirmationContentPane.add(childrenToBeRemoved, 0, 0);
-        WizardPane confirmationPane = new WizardPane() {
-            @Override
-            public void onEnteringPage(Wizard wizard) {
-                Pattern regex = Pattern.compile(String.valueOf(wizard.getSettings()
-                                                                       .get(txtFilter.getId())));
-                childrenToBeRemoved.setItems(childrenToBeRemoved
-                                                     .getItems().filtered(regex.asPredicate()));
-                this.setHeaderText(MessageFormat.format(
-                        "Confirm that you want to delete this list of {} child nodes from the currently selected node",
-                        childrenToBeRemoved.getItems().size()));
-            }
-        };
+        WizardPane confirmationPane = new FilteredNodeRemovalConfirmationWizardPane(childrenToBeRemoved,
+                                                                                           txtFilter.getId());
         confirmationPane.setContent(confirmationContentPane);
 
         Wizard deleteBatchWizard = new Wizard(null, "Delete a group of children");
@@ -547,7 +525,7 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
     }
 
     @FXML
-    private void doUnfilterChildren() {
+    void doUnfilterChildren() {
         TreeItem<ZkNode> selectedItem = getSelectedItem();
         if (selectedItem instanceof ZkTreeNode) {
             loadData((ZkTreeNode) selectedItem);
@@ -571,7 +549,7 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
     }
 
     @FXML
-    private void doGoto() {
+    void doGoto() {
         TextInputDialog dialog = new TextInputDialog(getPathFromNodeWithClusterPrefix(getSelectedItem()));
         dialog.setTitle("Goto Node");
         dialog.setHeaderText("Jump to another node anywhere in the tree");

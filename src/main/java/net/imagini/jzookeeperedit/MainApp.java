@@ -6,11 +6,11 @@ import javafx.stage.Stage;
 
 
 public class MainApp extends Application {
-    private Stage stage;
+    private Stage primaryStage;
     
     @Override 
-    public void start(Stage primaryStage) { 
-        this.stage = primaryStage;
+    public final void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
         setup();
     }
     
@@ -21,8 +21,13 @@ public class MainApp extends Application {
         AnchorPane root = new AnchorPane();
         root.getChildren().addAll(mainContainer); 
         javafx.scene.Scene scene = new javafx.scene.Scene(root);
-        stage.setScene(scene); 
-        stage.show(); 
+
+        if (primaryStage == null) {
+            throw new IllegalStateException("Primary stage not set - Unable to display scene on primary primaryStage.");
+        } else {
+            primaryStage.setScene(scene);
+            primaryStage.show();
+        }
     }
 
     /**

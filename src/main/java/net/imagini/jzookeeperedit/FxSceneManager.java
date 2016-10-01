@@ -57,10 +57,6 @@ public class FxSceneManager extends StackPane {
         }
     }
 
-    private void addScreen(Scene scene, Node screen) {
-        scenes.put(scene, screen);
-    }
-
     boolean setScene(final Scene scene) {
         Node screen = scenes.computeIfAbsent(scene, this::loadScreen);
         // If there is already a screen loaded

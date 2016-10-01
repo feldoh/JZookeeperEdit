@@ -15,6 +15,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class ZkTreeNode extends TreeItem<ZkNode> {
+    public static final String CHARSET_NAME = "UTF-8";
     private static Logger LOGGER = LoggerFactory.getLogger(ZkTreeNode.class);
     private static final Predicate<String> TRUE_PREDICATE = str -> true;
 
@@ -125,7 +126,7 @@ public class ZkTreeNode extends TreeItem<ZkNode> {
      */
     public Optional<Stat> getStat() {
         if (statCacheExists()) {
-            getStatFromServer(true).orElse(null);
+            getStatFromServer(true);
         }
         return Optional.of(statCache);
     }
@@ -163,7 +164,7 @@ public class ZkTreeNode extends TreeItem<ZkNode> {
         }
         try {
             byte[] data = getClient().getData().forPath(path);
-            return data == null ? "" : new String(data);
+            return data == null ? "" : new String(data, CHARSET_NAME);
         } catch (Exception ex) {
             LOGGER.error(String.format("Error while retrieving data for %s", getCanonicalPath()), ex);
             return "";//TODO pop up an error

@@ -6,21 +6,21 @@ public class ZkNode {
     private final CuratorFramework zkClient;
     private String label;
     
-    public ZkNode(CuratorFramework zkClient, String label) {
-        this.zkClient = zkClient;
-        this.label = label;
+    public ZkNode(CuratorFramework zookeeperClient, String nodeLabel) {
+        this.zkClient = zookeeperClient;
+        this.label = nodeLabel;
     }
     
-    public void setLabel(String label) {
-        this.label = label;
+    public final void setLabel(String nodeLabel) {
+        this.label = nodeLabel;
     }
     
-    public CuratorFramework getClient() {
+    public final CuratorFramework getClient() {
         return zkClient;
     }
     
     @Override
-    public String toString() {
+    public final String toString() {
         return label;
     }
 }

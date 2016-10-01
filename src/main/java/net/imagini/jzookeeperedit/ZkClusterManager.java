@@ -31,20 +31,23 @@ public class ZkClusterManager {
     static {
         workingdir = new File(System.getProperty("user.home"), ".JZookeeperEdit");
         if (!workingdir.exists()) {
-            workingdir.mkdirs();
+            if (!workingdir.mkdirs()) {
+                LOGGER.error(String.format("Failed to create user config folder: %s",
+                        workingdir.getAbsolutePath()));
+            }
         }
         clusterConfigFile = new File(workingdir, "clusters.properties");
         if (!clusterConfigFile.exists()) {
             try {
-                clusterConfigFile.createNewFile();
+                if (clusterConfigFile.createNewFile()) {
+                    LOGGER.info("Created new cluster config file in {}", clusterConfigFile.getAbsolutePath());
+                }
             } catch (IOException ex) {
                 LOGGER.error(String.format("Failed to create user cluster config file: %s",
                         clusterConfigFile.getAbsolutePath()), ex);
             }
         }
-        InputStream input;
-        try {
-            input = new FileInputStream(clusterConfigFile);
+        try (InputStream input = new FileInputStream(clusterConfigFile)) {
             properties.load(input);
             properties.forEach((Object key, Object val) -> addclient((String) key, (String) val));
         } catch (IOException ex) {
@@ -79,10 +82,14 @@ public class ZkClusterManager {
                 .map(Map.Entry::getKey)
                 .findFirst();
     }
-    
+
+    /**
+     * Save current set of connection details to the user clusters file.
+     */
     public static void dumpConnectionDetails() throws IOException {
-        OutputStream output = new FileOutputStream(clusterConfigFile);
-        properties.store(output, "clusters");
+        try (OutputStream output = new FileOutputStream(clusterConfigFile)) {
+            properties.store(output, "clusters");
+        }
     }
     
     public static Map<String, CuratorFramework> getClusters() {
