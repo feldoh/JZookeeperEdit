@@ -1,16 +1,19 @@
 package net.imagini.zkcli;
 
+import net.imagini.jzookeeperedit.ZkClusterManager;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.zookeeper.data.Stat;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.zookeeper.data.Stat;
-
-import net.imagini.jzookeeperedit.ZKClusterManager;
-
 public class ZkCli implements Runnable {
+    private static final Charset CHARSET = java.nio.charset.StandardCharsets.UTF_8;
     private final CliParameters params;
 
     public ZkCli(CliParameters params) {
@@ -29,24 +32,27 @@ public class ZkCli implements Runnable {
     }
 
     private void doCliActions() {
-        CuratorFramework client = getCluster(params)
-                .orElseThrow(() -> new IllegalArgumentException("Please provide a valid connection string or cluster alias"));
+        CuratorFramework client = getCluster(params).orElseThrow(
+            () -> new IllegalArgumentException("Please provide a valid connection string or cluster alias"));
         try {
-            while(true) {
+            while (true) {
                 try {
                     client.start();
                     if (!client.blockUntilConnected(10, TimeUnit.SECONDS)) {
-                        throw new IllegalStateException("Could not connect to named cluster " + params.cluster + " within timeout. Check your connections.");
+                        throw new IllegalStateException("Could not connect to named cluster "
+                                                                + params.cluster
+                                                                + " within timeout. Check your connections.");
                     }
                     break;
                 } catch (InterruptedException e) {
                     System.err.println("Interrupted while trying to connect, retrying");
                 } catch (Throwable connectionMethodInvalidException) {
-                    throw new RuntimeException("Connection Failed - Ensure connection string is valid", connectionMethodInvalidException);
+                    throw new RuntimeException("Connection Failed - Ensure connection string is valid",
+                                                      connectionMethodInvalidException);
                 }
             }
             System.err.println("Established connection to " + params.cluster);
-            params.parameters.forEach(path -> {
+            params.positionalParameters.forEach(path -> {
                 if (params.listChildren) {
                     printChildren(client, path, params.printPaths);
                 }
@@ -71,16 +77,16 @@ public class ZkCli implements Runnable {
     private Optional<CuratorFramework> getCluster(CliParameters cliParameters) {
         try {
             return Optional.ofNullable(cliParameters.cluster == null || cliParameters.cluster.isEmpty()
-                    ? ZKClusterManager.buildClient(cliParameters.zkConnect)
-                    : ZKClusterManager.getClient(cliParameters.cluster));
-        } catch (Exception ex) {
+                    ? ZkClusterManager.buildClient(cliParameters.zkConnect)
+                    : ZkClusterManager.getClient(cliParameters.cluster));
+        } catch (RuntimeException ex) {
             return Optional.empty();
         }
     }
 
     private void printPathData(CuratorFramework client, String path) {
         try {
-            System.out.println(new String(client.getData().forPath(path)));
+            System.out.println(new String(client.getData().forPath(path), CHARSET));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -96,7 +102,10 @@ public class ZkCli implements Runnable {
 
     private void printMetaAccessors() {
         try {
-            Arrays.stream(Stat.class.getDeclaredMethods()).forEach(System.out::println);
+            Arrays.stream(Stat.class.getDeclaredMethods())
+                    .filter(method -> method.getParameterCount() == 0)
+                    .map(Method::getName)
+                    .forEach(System.out::println);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -109,7 +118,7 @@ public class ZkCli implements Runnable {
                     : Stat.class.getDeclaredMethod(metadataItemGetterName)
                     .invoke(stat)
                     .toString();
-        } catch (Exception e) {
+        } catch (RuntimeException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }
