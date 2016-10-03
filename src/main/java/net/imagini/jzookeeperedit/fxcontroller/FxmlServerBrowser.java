@@ -48,7 +48,6 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
@@ -293,15 +292,7 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
             TreeItem<ZkNode> item = getSelectedItem();
             if (item instanceof ZkTreeNode) {
                 try {
-                    ZkTreeNode treeNode = (ZkTreeNode) item;
-                    String siblingPath = treeNode.getCanonicalPath();
-                    StringBuilder nodePathBuilder = new StringBuilder(siblingPath);
-                    if (!siblingPath.equals("/")) {
-                        nodePathBuilder.append("/");
-                    }
-                    nodePathBuilder.append(nodeLabel);
-                    item.getValue().getClient().create().forPath(nodePathBuilder.toString(), EMPTY_BYTES);
-                    treeNode.loadChildren();
+                    performAddChildNode((ZkTreeNode) item, nodeLabel);
                 } catch (Exception zookeeperClientException) {
                     LOGGER.error("Adding Child Node failed", zookeeperClientException);
                     ExceptionDialog exceptionDialog = new ExceptionDialog(zookeeperClientException);
@@ -328,15 +319,7 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
             TreeItem<ZkNode> parent = getSelectedItem().getParent();
             if (parent instanceof ZkTreeNode) {
                 try {
-                    ZkTreeNode treeNode = (ZkTreeNode) parent;
-                    String parentPath = treeNode.getCanonicalPath();
-                    StringBuilder nodePathBuilder = new StringBuilder(parentPath);
-                    if (!parentPath.equals("/")) {
-                        nodePathBuilder.append("/");
-                    }
-                    nodePathBuilder.append(nodeLabel);
-                    parent.getValue().getClient().create().forPath(nodePathBuilder.toString(), EMPTY_BYTES);
-                    treeNode.loadChildren();
+                    performAddChildNode((ZkTreeNode) parent, nodeLabel);
                 } catch (Exception zookeeperClientException) {
                     LOGGER.error("Adding Sibling Node failed", zookeeperClientException);
                     ExceptionDialog exceptionDialog = new ExceptionDialog(zookeeperClientException);
@@ -346,6 +329,17 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
                 }
             }
         });
+    }
+
+    private void performAddChildNode(ZkTreeNode parentNode, String childNodeName) throws Exception {
+        String parentPath = parentNode.getCanonicalPath();
+        StringBuilder nodePathBuilder = new StringBuilder(parentPath);
+        if (!parentPath.equals("/")) {
+            nodePathBuilder.append("/");
+        }
+        nodePathBuilder.append(childNodeName);
+        parentNode.getValue().getClient().create().forPath(nodePathBuilder.toString(), EMPTY_BYTES);
+        parentNode.loadChildren();
     }
 
     @FXML
@@ -364,7 +358,7 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
             confirmDelete.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
             confirmDelete.setTitle("Deleting Node");
             confirmDelete.setHeaderText("Deleting " + treeNode.getCanonicalPath());
-            confirmDelete.setContentText("Are you sure you want to delete this node and all of its children");
+            confirmDelete.setContentText("Are you sure you want to delete this node,\nand all of its children");
             confirmDelete.showAndWait()
                     .filter(ButtonType.YES::equals)
                     .ifPresent((yes) -> performDelete(treeNode));
@@ -382,7 +376,7 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
                 parentTreeNode.invalidateChildrenCache();
                 parentTreeNode.getChildren().remove(treeNode);
                 new Alert(Alert.AlertType.INFORMATION,
-                        MessageFormat.format("Removed node {}", treeNode.getCanonicalPath()),
+                        String.format("Removed node %s", treeNode.getCanonicalPath()),
                         ButtonType.OK).showAndWait();
                 parentTreeNode.loadChildren();
                 FxmlServerBrowser.this.updateMetaData();
@@ -429,8 +423,8 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
         public void onEnteringPage(Wizard wizard) {
             Pattern regex = Pattern.compile(String.valueOf(wizard.getSettings().get(filterFieldId)));
             condemmedList.setItems(condemmedList.getItems().filtered(regex.asPredicate()));
-            this.setHeaderText(MessageFormat.format(
-                    "Confirm that you want to delete this list of {} child nodes from the currently selected node",
+            this.setHeaderText(String.format(
+                    "Confirm that you want to delete this list of %d child nodes from the currently selected node",
                     condemmedList.getItems().size()));
         }
     }

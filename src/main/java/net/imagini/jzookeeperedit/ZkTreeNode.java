@@ -126,14 +126,13 @@ public class ZkTreeNode extends TreeItem<ZkNode> {
      * Will cache after retrieval and thereafter return the cache until invalidated.
      */
     public Optional<Stat> getStat() {
-        if (statCacheExists()) {
-            getStatFromServer(true);
-        }
-        return Optional.of(statCache);
+        return statCacheExists()
+                ? Optional.ofNullable(statCache)
+                : getStatFromServer(true);
     }
 
     private boolean statCacheExists() {
-        return statCache == null;
+        return statCache != null;
     }
 
     /**
