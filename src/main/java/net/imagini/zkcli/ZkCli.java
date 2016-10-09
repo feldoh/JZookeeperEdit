@@ -1,5 +1,7 @@
 package net.imagini.zkcli;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import net.imagini.jzookeeperedit.ZkClusterManager;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.data.Stat;
@@ -8,16 +10,26 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 
 public class ZkCli implements Runnable {
     private static final Charset CHARSET = java.nio.charset.StandardCharsets.UTF_8;
     private final CliParameters params;
+    private Set<String> pathBlackList = new HashSet<>();
 
+    /**
+     * Constructor for ZkCli. Initializes pathBlackList and automatically adds
+     * the "/zookeeper" path to the blacklist.
+     * @param params the command line parameters object
+     */
     public ZkCli(CliParameters params) {
         this.params = params;
+        // TODO: expose way to add to the blacklist
+        pathBlackList.add("/zookeeper");
     }
 
     @Override
@@ -51,8 +63,8 @@ public class ZkCli implements Runnable {
                                                       connectionMethodInvalidException);
                 }
             }
-            // TODO: don't assume a cluster is always specified
-            System.err.println("Established connection to " + params.cluster);
+            System.err.println("Established connection to "
+                    + (params.cluster == null ? params.zkConnect : params.cluster));
             params.positionalParameters.forEach(path -> {
                 if (params.listChildren) {
                     printChildren(client, path, params.printPaths);
@@ -150,7 +162,8 @@ public class ZkCli implements Runnable {
         }
     }
 
-    private void deleteNodeNonRecursive(CuratorFramework client, String path) {
+    @VisibleForTesting
+    void deleteNodeNonRecursive(CuratorFramework client, String path) {
         try {
             client.delete().forPath(path);
         } catch (Exception e) {
@@ -158,7 +171,8 @@ public class ZkCli implements Runnable {
         }
     }
 
-    private void deleteNodeRecursive(CuratorFramework client, String path) {
+    @VisibleForTesting
+    void deleteNodeRecursive(CuratorFramework client, String path) {
         try {
             client.delete().deletingChildrenIfNeeded().forPath(path);
         } catch (Exception e) {
@@ -166,11 +180,13 @@ public class ZkCli implements Runnable {
         }
     }
 
-    private void deleteChildrenOfNode(CuratorFramework client, String path) {
+    @VisibleForTesting
+    void deleteChildrenOfNode(CuratorFramework client, String path) {
         try {
-            client.getChildren().forPath(path).forEach(c -> {
-                deleteNodeRecursive(client, path.endsWith("/") ? path + c : path + "/" + c);
-            });
+            client.getChildren().forPath(path).stream()
+                    .map(c -> path.endsWith("/") ? path + c : path + "/" + c)
+                    .filter(fullPath -> !pathBlackList.contains(fullPath))
+                    .forEach(fullPath -> deleteNodeRecursive(client, fullPath));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

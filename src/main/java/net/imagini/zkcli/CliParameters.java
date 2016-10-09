@@ -31,7 +31,7 @@ public class CliParameters {
     boolean deleteNodeNonRecursive;
 
     @Parameter(names = { "--rm-children" },
-            description = "Remove all children of a node recursively, keeping the node intact."
+            description = "Remove all children of a node recursively, keeping the specified node intact."
                     + "Requires a path and cluster")
     boolean deleteChildrenOfNode;
 
