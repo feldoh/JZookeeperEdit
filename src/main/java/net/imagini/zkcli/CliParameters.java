@@ -22,6 +22,19 @@ public class CliParameters {
             description = "Print child nodes")
     boolean listChildren;
 
+    @Parameter(names = { "--rm-recursive", "-r" },
+            description = "Remove a node, deleting any children recursively if necessary. Requires a path and cluster")
+    boolean deleteNodeRecursive;
+
+    @Parameter(names = { "--rm" },
+            description = "Remove a node only if it does not have children. Requires a path and cluster")
+    boolean deleteNodeNonRecursive;
+
+    @Parameter(names = { "--rm-children" },
+            description = "Remove all children of a node recursively, keeping the node intact."
+                    + "Requires a path and cluster")
+    boolean deleteChildrenOfNode;
+
     @Parameter(names = { "--printPaths", "-p" },
             description = "When printing node names include full paths")
     boolean printPaths;
@@ -54,7 +67,8 @@ public class CliParameters {
     }
 
     public boolean includesAction() {
-        return listMetaAccessors || listChildren || getMeta || getData || help;
+        return listMetaAccessors || listChildren || deleteNodeRecursive || deleteNodeNonRecursive
+                || deleteChildrenOfNode || getMeta || getData || help;
     }
 
     void printUsage() {

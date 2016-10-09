@@ -51,6 +51,7 @@ public class ZkCli implements Runnable {
                                                       connectionMethodInvalidException);
                 }
             }
+            // TODO: don't assume a cluster is always specified
             System.err.println("Established connection to " + params.cluster);
             params.positionalParameters.forEach(path -> {
                 if (params.listChildren) {
@@ -61,6 +62,15 @@ public class ZkCli implements Runnable {
                 }
                 if (params.getMeta) {
                     printPathMetaData(client, path, params.specificMetaFieldGetter);
+                }
+                if (params.deleteNodeNonRecursive) {
+                    deleteNodeNonRecursive(client, path);
+                }
+                if (params.deleteNodeRecursive) {
+                    deleteNodeRecursive(client, path);
+                }
+                if (params.deleteChildrenOfNode) {
+                    deleteChildrenOfNode(client, path);
                 }
             });
         } finally {
@@ -140,4 +150,29 @@ public class ZkCli implements Runnable {
         }
     }
 
+    private void deleteNodeNonRecursive(CuratorFramework client, String path) {
+        try {
+            client.delete().forPath(path);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void deleteNodeRecursive(CuratorFramework client, String path) {
+        try {
+            client.delete().deletingChildrenIfNeeded().forPath(path);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void deleteChildrenOfNode(CuratorFramework client, String path) {
+        try {
+            client.getChildren().forPath(path).forEach(c -> {
+                deleteNodeRecursive(client, path.endsWith("/") ? path + c : path + "/" + c);
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
