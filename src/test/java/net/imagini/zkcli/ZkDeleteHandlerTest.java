@@ -13,10 +13,12 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ZkCliTest {
+public class ZkDeleteHandlerTest {
 
     @Mock
     private CuratorFramework client;
@@ -30,20 +32,19 @@ public class ZkCliTest {
     @Mock
     private GetChildrenBuilder getChildrenBuilder;
 
-    @Mock
-    private CliParameters cliParameters;
-
-    private ZkCli underTest;
+    private ZkDeleteHandler underTest;
 
     private static final String VALID_PATH = "/valid/path";
 
     private static final String INVALID_PATH = "/invalid/path";
 
+    private static final String protectedZkMetaNode = "/zookeeper";
+
     private List<String> validPathChildren;
 
     @Before
     public void setup() throws Exception {
-        underTest = new ZkCli(cliParameters);
+        underTest = new ZkDeleteHandler();
 
         validPathChildren = new ArrayList<>();
         validPathChildren.add("child1");
@@ -62,7 +63,7 @@ public class ZkCliTest {
 
     @Test
     public void testDeleteNodeNonRecursiveNormal() throws Exception {
-        underTest.deleteNodeNonRecursive(client, VALID_PATH);
+        underTest.deleteNodeNonRecursive(client, VALID_PATH, Collections.singleton(protectedZkMetaNode));
 
         Mockito.verify(deleteBuilder, Mockito.times(1)).forPath(VALID_PATH);
         Mockito.verifyNoMoreInteractions(deleteBuilder);
@@ -70,25 +71,20 @@ public class ZkCliTest {
 
     @Test(expected = RuntimeException.class)
     public void testDeleteNodeNonRecursiveBadPath() {
-        underTest.deleteNodeNonRecursive(client, INVALID_PATH);
+        underTest.deleteNodeNonRecursive(client, INVALID_PATH, Collections.singleton(protectedZkMetaNode));
     }
 
     @Test
     public void testDeleteNodeRecursiveNormal() throws Exception {
-        underTest.deleteNodeRecursive(client, VALID_PATH);
+        underTest.deleteNodeRecursive(client, VALID_PATH, Collections.singleton(protectedZkMetaNode));
 
         Mockito.verify(deleteBuilder, Mockito.times(1)).deletingChildrenIfNeeded();
         Mockito.verify(backgroundVersionable, Mockito.times(1)).forPath(VALID_PATH);
     }
 
-    @Test(expected = RuntimeException.class)
-    public void testDeleteNodeRecursiveBadPath() throws Exception {
-        underTest.deleteNodeRecursive(client, INVALID_PATH);
-    }
-
     @Test
     public void testDeleteChildrenNormal() throws Exception {
-        underTest.deleteChildrenOfNode(client, VALID_PATH);
+        underTest.deleteChildrenOfNode(client, VALID_PATH, Collections.singleton(protectedZkMetaNode));
 
         Mockito.verify(deleteBuilder, Mockito.times(validPathChildren.size())).deletingChildrenIfNeeded();
         Mockito.verify(backgroundVersionable, Mockito.times(validPathChildren.size())).forPath(Mockito.anyString());
@@ -100,7 +96,7 @@ public class ZkCliTest {
         validPathChildren.add("zookeeper");
         Mockito.when(getChildrenBuilder.forPath("/")).thenReturn(validPathChildren);
 
-        underTest.deleteChildrenOfNode(client, "/");
+        underTest.deleteChildrenOfNode(client, "/", Collections.singleton(protectedZkMetaNode));
 
         Mockito.verify(deleteBuilder, Mockito.times(validPathChildren.size() - 1)).deletingChildrenIfNeeded();
         Mockito.verify(backgroundVersionable, Mockito.times(validPathChildren.size() - 1)).forPath(Mockito.anyString());
@@ -111,9 +107,34 @@ public class ZkCliTest {
     public void testDeleteChildrenWithNonRootZookeeperInPath() throws Exception {
         validPathChildren.add("zookeeper");
 
-        underTest.deleteChildrenOfNode(client, VALID_PATH);
+        underTest.deleteChildrenOfNode(client, VALID_PATH, Collections.singleton(protectedZkMetaNode));
 
         Mockito.verify(deleteBuilder, Mockito.times(validPathChildren.size())).deletingChildrenIfNeeded();
         Mockito.verify(backgroundVersionable, Mockito.times(validPathChildren.size())).forPath(Mockito.anyString());
+    }
+
+    @Test
+    public void testDeleteNodeRecursiveWithBlacklistedChildren() throws Exception {
+        String protectedChild = "protected";
+        String protectedChildPath = VALID_PATH + "/" + protectedChild;
+        validPathChildren.add(protectedChild);
+        underTest.deleteNodeRecursive(client, VALID_PATH, new HashSet<String>(){{
+            add(protectedZkMetaNode);
+            add(protectedChildPath);
+        }});
+
+        Mockito.verify(deleteBuilder, Mockito.never()).forPath(protectedChildPath);
+        Mockito.verify(deleteBuilder, Mockito.times(validPathChildren.size() - 1)).deletingChildrenIfNeeded();
+        Mockito.verify(backgroundVersionable, Mockito.times(validPathChildren.size() - 1)).forPath(Mockito.anyString());
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testDeleteNodeChildrenBadPath() throws Exception {
+        underTest.deleteChildrenOfNode(client, INVALID_PATH, Collections.singleton(protectedZkMetaNode));
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testDeleteNodeRecursiveBadPath() throws Exception {
+        underTest.deleteNodeRecursive(client, INVALID_PATH, Collections.singleton(protectedZkMetaNode));
     }
 }
