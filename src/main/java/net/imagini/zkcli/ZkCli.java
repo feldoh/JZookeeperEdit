@@ -28,14 +28,14 @@ public class ZkCli implements Runnable {
         this.zkReadHandler = zkReadHandler;
         this.zkMetadataHandler = zkMetadataHandler;
         this.params = params;
-        pathBlackList.addAll(params.blacklist);
+        pathBlackList.addAll(params.getBlacklist());
     }
 
     @Override
     public void run() {
-        if (params.listMetaAccessors) {
+        if (params.isListMetaAccessors()) {
             zkMetadataHandler.getMetaAccessorMethodNames().forEach(System.out::println);
-        } else if (params.help) {
+        } else if (params.isHelp()) {
             params.printUsage();
         } else {
             doCliActions();
@@ -45,26 +45,22 @@ public class ZkCli implements Runnable {
     private void doCliActions() {
         CuratorFramework client = params.getCluster().orElseThrow(
             () -> new IllegalArgumentException("Please provide a valid connection string or cluster alias"));
+        String clusterId = params.getCluster() == null ? params.getZkConnect() : params.getFriendlyName();
         try {
             while (true) {
                 try {
                     client.start();
                     if (!client.blockUntilConnected(10, TimeUnit.SECONDS)) {
-                        throw new IllegalStateException("Could not connect to named cluster "
-                                                                + params.cluster
+                        throw new IllegalStateException("Could not connect to " + clusterId
                                                                 + " within timeout. Check your connections.");
                     }
                     break;
                 } catch (InterruptedException e) {
                     System.err.println("Interrupted while trying to connect, retrying");
-                } catch (Throwable connectionMethodInvalidException) {
-                    throw new RuntimeException("Connection Failed - Ensure connection string is valid",
-                                                      connectionMethodInvalidException);
                 }
             }
-            System.err.println("Established connection to "
-                    + (params.cluster == null ? params.zkConnect : params.cluster));
-            params.positionalParameters.forEach(path -> runCliActionsForPath(client, path));
+            System.err.println("Established connection to " + clusterId);
+            params.getPositionalParameters().forEach(path -> runCliActionsForPath(client, path));
         } finally {
             if (client != null) {
                 try {
@@ -77,23 +73,23 @@ public class ZkCli implements Runnable {
     }
 
     private void runCliActionsForPath(CuratorFramework client, String path) {
-        if (params.listChildren) {
-            zkReadHandler.getChildren(client, path, params.printPaths).forEach(System.out::println);
+        if (params.isListChildren()) {
+            zkReadHandler.getChildren(client, path, params.isPrintPaths()).forEach(System.out::println);
         }
-        if (params.getData) {
+        if (params.isGetData()) {
             System.out.println(zkReadHandler.getPathData(client, path));
         }
-        if (params.getMeta) {
-            System.out.println(zkMetadataHandler.getPathMetaData(client, path, params.specificMetaFieldGetter));
+        if (params.isGetMeta()) {
+            System.out.println(zkMetadataHandler.getPathMetaData(client, path, params.getSpecificMetaFieldGetter()));
         }
-        if (params.deleteNodeNonRecursive) {
+        if (params.isDeleteChildrenOfNode()) {
+            zkDeleteHandler.deleteChildrenOfNode(client, path, pathBlackList);
+        }
+        if (params.isDeleteNodeNonRecursive()) {
             zkDeleteHandler.deleteNodeNonRecursive(client, path, pathBlackList);
         }
-        if (params.deleteNodeRecursive) {
+        if (params.isDeleteNodeRecursive()) {
             zkDeleteHandler.deleteNodeRecursive(client, path, pathBlackList);
-        }
-        if (params.deleteChildrenOfNode) {
-            zkDeleteHandler.deleteChildrenOfNode(client, path, pathBlackList);
         }
     }
 
