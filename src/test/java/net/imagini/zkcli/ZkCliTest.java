@@ -1,15 +1,14 @@
 package net.imagini.zkcli;
 
-import org.apache.curator.framework.CuratorFramework;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.mockito.InOrder;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.PrintStream;
 import java.lang.reflect.Field;
@@ -20,12 +19,15 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import org.apache.curator.framework.CuratorFramework;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ZkCliTest {
@@ -54,14 +56,14 @@ public class ZkCliTest {
     public void testPrintingHelp() {
         when(mockParams.isHelp()).thenReturn(true);
         new ZkCli(mockParams, null, null, null).run();
-        Mockito.verify(mockParams).printUsage();
+        verify(mockParams).printUsage();
     }
 
     @Test
     public void testPrintingAccessors() {
         when(mockParams.isListMetaAccessors()).thenReturn(true);
         new ZkCli(mockParams, null, null, mockMetaHandler).run();
-        Mockito.verify(mockMetaHandler).getMetaAccessorMethodNames();
+        verify(mockMetaHandler).getMetaAccessorMethodNames();
     }
 
     @Test
@@ -88,7 +90,7 @@ public class ZkCliTest {
                 .thenThrow(InterruptedException.class)
                 .thenReturn(true);
         new ZkCli(mockParams, null, null, null).run();
-        Mockito.verify(mockClient).close();
+        verify(mockClient).close();
     }
 
     @Test
@@ -97,7 +99,7 @@ public class ZkCliTest {
         doThrow(new RuntimeException()).when(mockClient).close();
         when(mockClient.blockUntilConnected(anyInt(), any(TimeUnit.class))).thenReturn(true);
         new ZkCli(mockParams, null, null, null).run();
-        Mockito.verify(mockClient).close();
+        verify(mockClient).close();
     }
 
     @Test
@@ -110,9 +112,9 @@ public class ZkCliTest {
         doThrow(new RuntimeException()).when(mockClient).close();
         when(mockClient.blockUntilConnected(anyInt(), any(TimeUnit.class))).thenReturn(true);
         new ZkCli(mockParams, mockDeleteHandler, null, null).run();
-        InOrder inOrder = Mockito.inOrder(mockDeleteHandler, mockClient);
-        inOrder.verify(mockDeleteHandler).deleteChildrenOfNode(eq(mockClient), eq(path), Mockito.anySet());
-        inOrder.verify(mockDeleteHandler).deleteNodeNonRecursive(eq(mockClient), eq(path), Mockito.anySet());
+        InOrder inOrder = inOrder(mockDeleteHandler, mockClient);
+        inOrder.verify(mockDeleteHandler).deleteChildrenOfNode(eq(mockClient), eq(path), anySet());
+        inOrder.verify(mockDeleteHandler).deleteNodeNonRecursive(eq(mockClient), eq(path), anySet());
         inOrder.verify(mockClient).close();
     }
 
@@ -138,7 +140,7 @@ public class ZkCliTest {
         doThrow(new RuntimeException()).when(mockClient).close();
         when(mockClient.blockUntilConnected(anyInt(), any(TimeUnit.class))).thenReturn(true);
         new ZkCli(mockParams, null, mockReadHandler, mockMetaHandler).run();
-        InOrder inOrder = Mockito.inOrder(mockStdOut, mockClient);
+        InOrder inOrder = inOrder(mockStdOut, mockClient);
         inOrder.verify(mockStdOut).println(dataA);
         inOrder.verify(mockStdOut).println(metaA);
         inOrder.verify(mockStdOut).println(dataB);
@@ -174,11 +176,11 @@ public class ZkCliTest {
         when(mockClient.blockUntilConnected(anyInt(), any(TimeUnit.class))).thenReturn(true);
         when(mockReadHandler.getChildren(mockClient, path, false)).thenReturn(children);
         new ZkCli(mockParams, mockDeleteHandler, mockReadHandler, null).run();
-        InOrder inOrder = Mockito.inOrder(mockReadHandler, mockDeleteHandler, mockClient, mockStdOut);
+        InOrder inOrder = inOrder(mockReadHandler, mockDeleteHandler, mockClient, mockStdOut);
         inOrder.verify(mockReadHandler).getChildren(mockClient, path, false);
         inOrder.verify(mockStdOut).println(childA);
         inOrder.verify(mockStdOut).println(childB);
-        inOrder.verify(mockDeleteHandler).deleteNodeRecursive(eq(mockClient), eq(path), Mockito.anySet());
+        inOrder.verify(mockDeleteHandler).deleteNodeRecursive(eq(mockClient), eq(path), anySet());
         inOrder.verify(mockClient).close();
     }
 }

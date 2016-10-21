@@ -1,5 +1,16 @@
 package net.imagini.zkcli;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.ExistsBuilder;
 import org.apache.curator.framework.api.GetChildrenBuilder;
@@ -10,14 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ZkMetadataHandlerTest {
@@ -52,12 +56,12 @@ public class ZkMetadataHandlerTest {
         validPathChildren.add("child2");
         validPathChildren.add("child3");
 
-        Mockito.when(client.checkExists()).thenReturn(statBuilder);
-        Mockito.when(statBuilder.forPath(VALID_PATH)).thenReturn(mockStat);
-        Mockito.when(mockStat.getNumChildren()).thenReturn(validPathChildren.size());
-        Mockito.when(mockStat.toString()).thenReturn(STAT_LINE);
-        Mockito.doThrow(KeeperException.NoNodeException.class)
-                .when(statBuilder).forPath(Mockito.eq(INVALID_PATH));
+        when(client.checkExists()).thenReturn(statBuilder);
+        when(statBuilder.forPath(VALID_PATH)).thenReturn(mockStat);
+        when(mockStat.getNumChildren()).thenReturn(validPathChildren.size());
+        when(mockStat.toString()).thenReturn(STAT_LINE);
+        doThrow(KeeperException.NoNodeException.class)
+                .when(statBuilder).forPath(eq(INVALID_PATH));
     }
 
     @Test
@@ -80,7 +84,7 @@ public class ZkMetadataHandlerTest {
         try {
             underTest.getPathMetaData(client, INVALID_PATH, "someAccessor");
         } finally {
-            Mockito.verify(statBuilder, Mockito.times(1)).forPath(INVALID_PATH);
+            verify(statBuilder, times(1)).forPath(INVALID_PATH);
         }
     }
 
@@ -89,7 +93,7 @@ public class ZkMetadataHandlerTest {
         try {
             underTest.getPathMetaData(client, VALID_PATH, "someAccessor");
         } finally {
-            Mockito.verify(statBuilder, Mockito.times(1)).forPath(VALID_PATH);
+            verify(statBuilder, times(1)).forPath(VALID_PATH);
         }
     }
 }

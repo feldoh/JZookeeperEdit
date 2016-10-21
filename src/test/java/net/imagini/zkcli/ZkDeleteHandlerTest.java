@@ -1,5 +1,19 @@
 package net.imagini.zkcli;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.BackgroundVersionable;
 import org.apache.curator.framework.api.DeleteBuilder;
@@ -9,13 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ZkDeleteHandlerTest {
@@ -51,22 +59,22 @@ public class ZkDeleteHandlerTest {
         validPathChildren.add("child2");
         validPathChildren.add("child3");
 
-        Mockito.when(client.delete()).thenReturn(deleteBuilder);
-        Mockito.when(client.getChildren()).thenReturn(getChildrenBuilder);
-        Mockito.when(getChildrenBuilder.forPath(VALID_PATH)).thenReturn(validPathChildren);
-        Mockito.when(deleteBuilder.deletingChildrenIfNeeded()).thenReturn(backgroundVersionable);
-        Mockito.doThrow(KeeperException.NoNodeException.class)
-                .when(backgroundVersionable).forPath(Mockito.eq(INVALID_PATH));
-        Mockito.doThrow(KeeperException.NoNodeException.class)
-                .when(deleteBuilder).forPath(Mockito.eq(INVALID_PATH));
+        when(client.delete()).thenReturn(deleteBuilder);
+        when(client.getChildren()).thenReturn(getChildrenBuilder);
+        when(getChildrenBuilder.forPath(VALID_PATH)).thenReturn(validPathChildren);
+        when(deleteBuilder.deletingChildrenIfNeeded()).thenReturn(backgroundVersionable);
+        doThrow(KeeperException.NoNodeException.class)
+                .when(backgroundVersionable).forPath(eq(INVALID_PATH));
+        doThrow(KeeperException.NoNodeException.class)
+                .when(deleteBuilder).forPath(eq(INVALID_PATH));
     }
 
     @Test
     public void testDeleteNodeNonRecursiveNormal() throws Exception {
         underTest.deleteNodeNonRecursive(client, VALID_PATH, Collections.singleton(protectedZkMetaNode));
 
-        Mockito.verify(deleteBuilder, Mockito.times(1)).forPath(VALID_PATH);
-        Mockito.verifyNoMoreInteractions(deleteBuilder);
+        verify(deleteBuilder, times(1)).forPath(VALID_PATH);
+        verifyNoMoreInteractions(deleteBuilder);
     }
 
     @Test(expected = RuntimeException.class)
@@ -78,29 +86,29 @@ public class ZkDeleteHandlerTest {
     public void testDeleteNodeRecursiveNormal() throws Exception {
         underTest.deleteNodeRecursive(client, VALID_PATH, Collections.singleton(protectedZkMetaNode));
 
-        Mockito.verify(deleteBuilder, Mockito.times(1)).deletingChildrenIfNeeded();
-        Mockito.verify(backgroundVersionable, Mockito.times(1)).forPath(VALID_PATH);
+        verify(deleteBuilder, times(1)).deletingChildrenIfNeeded();
+        verify(backgroundVersionable, times(1)).forPath(VALID_PATH);
     }
 
     @Test
     public void testDeleteChildrenNormal() throws Exception {
         underTest.deleteChildrenOfNode(client, VALID_PATH, Collections.singleton(protectedZkMetaNode));
 
-        Mockito.verify(deleteBuilder, Mockito.times(validPathChildren.size())).deletingChildrenIfNeeded();
-        Mockito.verify(backgroundVersionable, Mockito.times(validPathChildren.size())).forPath(Mockito.anyString());
-        Mockito.verify(backgroundVersionable, Mockito.times(0)).forPath(VALID_PATH);
+        verify(deleteBuilder, times(validPathChildren.size())).deletingChildrenIfNeeded();
+        verify(backgroundVersionable, times(validPathChildren.size())).forPath(anyString());
+        verify(backgroundVersionable, times(0)).forPath(VALID_PATH);
     }
 
     @Test
     public void testDeleteChildrenOfRoot() throws Exception {
         validPathChildren.add("zookeeper");
-        Mockito.when(getChildrenBuilder.forPath("/")).thenReturn(validPathChildren);
+        when(getChildrenBuilder.forPath("/")).thenReturn(validPathChildren);
 
         underTest.deleteChildrenOfNode(client, "/", Collections.singleton(protectedZkMetaNode));
 
-        Mockito.verify(deleteBuilder, Mockito.times(validPathChildren.size() - 1)).deletingChildrenIfNeeded();
-        Mockito.verify(backgroundVersionable, Mockito.times(validPathChildren.size() - 1)).forPath(Mockito.anyString());
-        Mockito.verify(backgroundVersionable, Mockito.times(0)).forPath("/zookeeper");
+        verify(deleteBuilder, times(validPathChildren.size() - 1)).deletingChildrenIfNeeded();
+        verify(backgroundVersionable, times(validPathChildren.size() - 1)).forPath(anyString());
+        verify(backgroundVersionable, times(0)).forPath("/zookeeper");
     }
 
     @Test
@@ -109,8 +117,8 @@ public class ZkDeleteHandlerTest {
 
         underTest.deleteChildrenOfNode(client, VALID_PATH, Collections.singleton(protectedZkMetaNode));
 
-        Mockito.verify(deleteBuilder, Mockito.times(validPathChildren.size())).deletingChildrenIfNeeded();
-        Mockito.verify(backgroundVersionable, Mockito.times(validPathChildren.size())).forPath(Mockito.anyString());
+        verify(deleteBuilder, times(validPathChildren.size())).deletingChildrenIfNeeded();
+        verify(backgroundVersionable, times(validPathChildren.size())).forPath(anyString());
     }
 
     @Test
@@ -123,9 +131,9 @@ public class ZkDeleteHandlerTest {
             add(protectedChildPath);
         }});
 
-        Mockito.verify(deleteBuilder, Mockito.never()).forPath(protectedChildPath);
-        Mockito.verify(deleteBuilder, Mockito.times(validPathChildren.size() - 1)).deletingChildrenIfNeeded();
-        Mockito.verify(backgroundVersionable, Mockito.times(validPathChildren.size() - 1)).forPath(Mockito.anyString());
+        verify(deleteBuilder, never()).forPath(protectedChildPath);
+        verify(deleteBuilder, times(validPathChildren.size() - 1)).deletingChildrenIfNeeded();
+        verify(backgroundVersionable, times(validPathChildren.size() - 1)).forPath(anyString());
     }
 
     @Test(expected = RuntimeException.class)
