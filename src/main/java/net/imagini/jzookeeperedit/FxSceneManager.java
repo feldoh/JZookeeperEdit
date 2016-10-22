@@ -17,6 +17,7 @@ public class FxSceneManager extends StackPane {
     private static final String STYLESHEET_PATH = "/styles/Styles.css";
 
     private final Map<Scene, Node> scenes = new HashMap<>();
+    private final ZkClusterManager zkClusterManager;
 
     enum Scene {
         SERVER_BROWSER("/fxml/ServerBrowser.fxml");
@@ -32,7 +33,8 @@ public class FxSceneManager extends StackPane {
         }
     }
     
-    FxSceneManager() {
+    FxSceneManager(ZkClusterManager zkClusterManager) {
+        this.zkClusterManager = zkClusterManager;
         init();
     }
     
@@ -49,6 +51,9 @@ public class FxSceneManager extends StackPane {
             Parent loadScreen = myLoader.load();
             FxChildScene myScreenControler = myLoader.getController();
             myScreenControler.setFxSceneManager(this);
+            if (myScreenControler instanceof ClusterAwareFxChildScene) {
+                ((ClusterAwareFxChildScene) myScreenControler).setZkClusterManager(zkClusterManager);
+            }
             loadScreen.getStylesheets().add(STYLESHEET_PATH);
             return loadScreen;
         } catch (IOException e) {

@@ -10,8 +10,9 @@ import java.util.Optional;
 
 
 public class MainApp extends Application {
+    private ZkClusterManager clusterManager = new ZkClusterManager();
     private Stage primaryStage;
-    
+
     @Override
     public void start(Stage primaryStage) throws Exception {
         super.init();
@@ -26,7 +27,7 @@ public class MainApp extends Application {
      */
     private Optional<Integer> preInit() {
         final Parameters rawParams = getParameters();
-        CliParameters params = new CliParameters(rawParams.getRaw().toArray(new String[rawParams.getRaw().size()]));
+        CliParameters params = new CliParameters(rawParams.getRaw(), clusterManager);
         if (params.includesAction()) {
             try {
                 new ZkCli(params).run();
@@ -41,7 +42,7 @@ public class MainApp extends Application {
     }
 
     private void setup() {
-        FxSceneManager mainContainer = new FxSceneManager();
+        FxSceneManager mainContainer = new FxSceneManager(clusterManager);
         mainContainer.setScene(FxSceneManager.Scene.SERVER_BROWSER);
         
         AnchorPane root = new AnchorPane();

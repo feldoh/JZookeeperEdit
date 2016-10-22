@@ -1,119 +1,186 @@
 package net.imagini.zkcli;
 
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.api.BackgroundVersionable;
-import org.apache.curator.framework.api.DeleteBuilder;
-import org.apache.curator.framework.api.GetChildrenBuilder;
-import org.apache.zookeeper.KeeperException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
+import java.io.PrintStream;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
+
+import org.apache.curator.framework.CuratorFramework;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ZkCliTest {
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
     @Mock
-    private CuratorFramework client;
-
+    private CliParameters mockParams;
     @Mock
-    private BackgroundVersionable backgroundVersionable;
-
+    private ZkDeleteHandler mockDeleteHandler;
     @Mock
-    private DeleteBuilder deleteBuilder;
-
+    private ZkReadHandler mockReadHandler;
     @Mock
-    private GetChildrenBuilder getChildrenBuilder;
-
+    private ZkMetadataHandler mockMetaHandler;
     @Mock
-    private CliParameters cliParameters;
-
-    private ZkCli underTest;
-
-    private static final String VALID_PATH = "/valid/path";
-
-    private static final String INVALID_PATH = "/invalid/path";
-
-    private List<String> validPathChildren;
+    private CuratorFramework mockClient;
+    @Mock
+    private PrintStream mockStdOut;
 
     @Before
-    public void setup() throws Exception {
-        underTest = new ZkCli(cliParameters);
-
-        validPathChildren = new ArrayList<>();
-        validPathChildren.add("child1");
-        validPathChildren.add("child2");
-        validPathChildren.add("child3");
-
-        Mockito.when(client.delete()).thenReturn(deleteBuilder);
-        Mockito.when(client.getChildren()).thenReturn(getChildrenBuilder);
-        Mockito.when(getChildrenBuilder.forPath(VALID_PATH)).thenReturn(validPathChildren);
-        Mockito.when(deleteBuilder.deletingChildrenIfNeeded()).thenReturn(backgroundVersionable);
-        Mockito.doThrow(KeeperException.NoNodeException.class)
-                .when(backgroundVersionable).forPath(Mockito.eq(INVALID_PATH));
-        Mockito.doThrow(KeeperException.NoNodeException.class)
-                .when(deleteBuilder).forPath(Mockito.eq(INVALID_PATH));
+    public void setup() {
+        System.setOut(mockStdOut);
     }
 
     @Test
-    public void testDeleteNodeNonRecursiveNormal() throws Exception {
-        underTest.deleteNodeNonRecursive(client, VALID_PATH);
-
-        Mockito.verify(deleteBuilder, Mockito.times(1)).forPath(VALID_PATH);
-        Mockito.verifyNoMoreInteractions(deleteBuilder);
-    }
-
-    @Test(expected = RuntimeException.class)
-    public void testDeleteNodeNonRecursiveBadPath() {
-        underTest.deleteNodeNonRecursive(client, INVALID_PATH);
+    public void testPrintingHelp() {
+        when(mockParams.isHelp()).thenReturn(true);
+        new ZkCli(mockParams, null, null, null).run();
+        verify(mockParams).printUsage();
     }
 
     @Test
-    public void testDeleteNodeRecursiveNormal() throws Exception {
-        underTest.deleteNodeRecursive(client, VALID_PATH);
-
-        Mockito.verify(deleteBuilder, Mockito.times(1)).deletingChildrenIfNeeded();
-        Mockito.verify(backgroundVersionable, Mockito.times(1)).forPath(VALID_PATH);
-    }
-
-    @Test(expected = RuntimeException.class)
-    public void testDeleteNodeRecursiveBadPath() throws Exception {
-        underTest.deleteNodeRecursive(client, INVALID_PATH);
+    public void testPrintingAccessors() {
+        when(mockParams.isListMetaAccessors()).thenReturn(true);
+        new ZkCli(mockParams, null, null, mockMetaHandler).run();
+        verify(mockMetaHandler).getMetaAccessorMethodNames();
     }
 
     @Test
-    public void testDeleteChildrenNormal() throws Exception {
-        underTest.deleteChildrenOfNode(client, VALID_PATH);
-
-        Mockito.verify(deleteBuilder, Mockito.times(validPathChildren.size())).deletingChildrenIfNeeded();
-        Mockito.verify(backgroundVersionable, Mockito.times(validPathChildren.size())).forPath(Mockito.anyString());
-        Mockito.verify(backgroundVersionable, Mockito.times(0)).forPath(VALID_PATH);
+    public void testNoClusterProvidedThrowsException() {
+        when(mockParams.getCluster()).thenReturn(Optional.empty());
+        expectedException.expect(IllegalArgumentException.class);
+        new ZkCli(mockParams, null, null, null).run();
     }
 
     @Test
-    public void testDeleteChildrenOfRoot() throws Exception {
-        validPathChildren.add("zookeeper");
-        Mockito.when(getChildrenBuilder.forPath("/")).thenReturn(validPathChildren);
-
-        underTest.deleteChildrenOfNode(client, "/");
-
-        Mockito.verify(deleteBuilder, Mockito.times(validPathChildren.size() - 1)).deletingChildrenIfNeeded();
-        Mockito.verify(backgroundVersionable, Mockito.times(validPathChildren.size() - 1)).forPath(Mockito.anyString());
-        Mockito.verify(backgroundVersionable, Mockito.times(0)).forPath("/zookeeper");
+    public void testCannotConnectThrowsException() throws InterruptedException {
+        when(mockParams.getFriendlyName()).thenReturn("someCluster");
+        when(mockParams.getCluster()).thenReturn(Optional.of(mockClient));
+        expectedException.expect(IllegalStateException.class);
+        expectedException.expectMessage("someCluster");
+        when(mockClient.blockUntilConnected(anyInt(), any(TimeUnit.class))).thenReturn(false);
+        new ZkCli(mockParams, null, null, null).run();
     }
 
     @Test
-    public void testDeleteChildrenWithNonRootZookeeperInPath() throws Exception {
-        validPathChildren.add("zookeeper");
+    public void testConnectionInterruptedRetries() throws InterruptedException {
+        when(mockParams.getCluster()).thenReturn(Optional.of(mockClient));
+        when(mockClient.blockUntilConnected(anyInt(), any(TimeUnit.class)))
+                .thenThrow(InterruptedException.class)
+                .thenReturn(true);
+        new ZkCli(mockParams, null, null, null).run();
+        verify(mockClient).close();
+    }
 
-        underTest.deleteChildrenOfNode(client, VALID_PATH);
+    @Test
+    public void failingToCloseIsNotAnError() throws InterruptedException {
+        when(mockParams.getCluster()).thenReturn(Optional.of(mockClient));
+        doThrow(new RuntimeException()).when(mockClient).close();
+        when(mockClient.blockUntilConnected(anyInt(), any(TimeUnit.class))).thenReturn(true);
+        new ZkCli(mockParams, null, null, null).run();
+        verify(mockClient).close();
+    }
 
-        Mockito.verify(deleteBuilder, Mockito.times(validPathChildren.size())).deletingChildrenIfNeeded();
-        Mockito.verify(backgroundVersionable, Mockito.times(validPathChildren.size())).forPath(Mockito.anyString());
+    @Test
+    public void testDeleteChildrenHappensBeforeParent() throws InterruptedException {
+        String path = "/a/path";
+        when(mockParams.getCluster()).thenReturn(Optional.of(mockClient));
+        when(mockParams.getPositionalParameters()).thenReturn(Collections.singletonList(path));
+        when(mockParams.isDeleteChildrenOfNode()).thenReturn(true);
+        when(mockParams.isDeleteNodeNonRecursive()).thenReturn(true);
+        doThrow(new RuntimeException()).when(mockClient).close();
+        when(mockClient.blockUntilConnected(anyInt(), any(TimeUnit.class))).thenReturn(true);
+        new ZkCli(mockParams, mockDeleteHandler, null, null).run();
+        InOrder inOrder = inOrder(mockDeleteHandler, mockClient);
+        inOrder.verify(mockDeleteHandler).deleteChildrenOfNode(eq(mockClient), eq(path), anySet());
+        inOrder.verify(mockDeleteHandler).deleteNodeNonRecursive(eq(mockClient), eq(path), anySet());
+        inOrder.verify(mockClient).close();
+    }
+
+    @Test
+    public void testMixingPrintOptionsClustersAnswersByPath() throws InterruptedException {
+        String pathA = "/a/path";
+        String dataA = "aData";
+        String metaA = "aMeta";
+        String pathB = "/b/path";
+        String dataB = "bData";
+        String metaB = "bMeta";
+        String metaGetter = "someGetter";
+        List<String> paths = Arrays.asList(pathA, pathB);
+        when(mockParams.getCluster()).thenReturn(Optional.of(mockClient));
+        when(mockParams.getPositionalParameters()).thenReturn(paths);
+        when(mockParams.isGetData()).thenReturn(true);
+        when(mockParams.isGetMeta()).thenReturn(true);
+        when(mockParams.getSpecificMetaFieldGetter()).thenReturn(metaGetter);
+        when(mockReadHandler.getPathData(mockClient, pathA)).thenReturn(dataA);
+        when(mockReadHandler.getPathData(mockClient, pathB)).thenReturn(dataB);
+        when(mockMetaHandler.getPathMetaData(mockClient, pathA, metaGetter)).thenReturn(metaA);
+        when(mockMetaHandler.getPathMetaData(mockClient, pathB, metaGetter)).thenReturn(metaB);
+        doThrow(new RuntimeException()).when(mockClient).close();
+        when(mockClient.blockUntilConnected(anyInt(), any(TimeUnit.class))).thenReturn(true);
+        new ZkCli(mockParams, null, mockReadHandler, mockMetaHandler).run();
+        InOrder inOrder = inOrder(mockStdOut, mockClient);
+        inOrder.verify(mockStdOut).println(dataA);
+        inOrder.verify(mockStdOut).println(metaA);
+        inOrder.verify(mockStdOut).println(dataB);
+        inOrder.verify(mockStdOut).println(metaB);
+        inOrder.verify(mockClient).close();
+    }
+
+    @Test
+    public void testOneArgConstructor() throws NoSuchFieldException, IllegalAccessException {
+        ZkCli unit = new ZkCli(mockParams);
+        Field zkDeleteHandler = ZkCli.class.getDeclaredField("zkDeleteHandler");
+        zkDeleteHandler.setAccessible(true);
+        assertNotNull(zkDeleteHandler.get(unit));
+        Field zkReadHandler = ZkCli.class.getDeclaredField("zkReadHandler");
+        zkReadHandler.setAccessible(true);
+        assertNotNull(zkReadHandler.get(unit));
+        Field zkMetadataHandler = ZkCli.class.getDeclaredField("zkMetadataHandler");
+        zkMetadataHandler.setAccessible(true);
+        assertNotNull(zkMetadataHandler.get(unit));
+    }
+
+    @Test
+    public void testListingHappensBeforeDeleting() throws InterruptedException {
+        String path = "/a/path";
+        String childA = "a";
+        String childB = "b";
+        Stream<String> children = Stream.of(childA, childB);
+        when(mockParams.getCluster()).thenReturn(Optional.of(mockClient));
+        when(mockParams.getPositionalParameters()).thenReturn(Collections.singletonList(path));
+        when(mockParams.isListChildren()).thenReturn(true);
+        when(mockParams.isPrintPaths()).thenReturn(false);
+        when(mockParams.isDeleteNodeRecursive()).thenReturn(true);
+        when(mockClient.blockUntilConnected(anyInt(), any(TimeUnit.class))).thenReturn(true);
+        when(mockReadHandler.getChildren(mockClient, path, false)).thenReturn(children);
+        new ZkCli(mockParams, mockDeleteHandler, mockReadHandler, null).run();
+        InOrder inOrder = inOrder(mockReadHandler, mockDeleteHandler, mockClient, mockStdOut);
+        inOrder.verify(mockReadHandler).getChildren(mockClient, path, false);
+        inOrder.verify(mockStdOut).println(childA);
+        inOrder.verify(mockStdOut).println(childB);
+        inOrder.verify(mockDeleteHandler).deleteNodeRecursive(eq(mockClient), eq(path), anySet());
+        inOrder.verify(mockClient).close();
     }
 }

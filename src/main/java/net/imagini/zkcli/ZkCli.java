@@ -1,42 +1,41 @@
 package net.imagini.zkcli;
 
-import com.google.common.annotations.VisibleForTesting;
-
-import net.imagini.jzookeeperedit.ZkClusterManager;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.zookeeper.data.Stat;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.nio.charset.Charset;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 
 public class ZkCli implements Runnable {
-    private static final Charset CHARSET = java.nio.charset.StandardCharsets.UTF_8;
     private final CliParameters params;
-    private Set<String> pathBlackList = new HashSet<>();
+    private final Set<String> pathBlackList = new HashSet<>();
+    private final ZkDeleteHandler zkDeleteHandler;
+    private final ZkReadHandler zkReadHandler;
+    private final ZkMetadataHandler zkMetadataHandler;
+
+    public ZkCli(CliParameters params) {
+        this(params, new ZkDeleteHandler(), new ZkReadHandler(), new ZkMetadataHandler());
+    }
 
     /**
-     * Constructor for ZkCli. Initializes pathBlackList and automatically adds
-     * the "/zookeeper" path to the blacklist.
-     * @param params the command line parameters object
+     * Construct a ZkCli instance with alternate action handlers.
      */
-    public ZkCli(CliParameters params) {
+    public ZkCli(CliParameters params,
+                 ZkDeleteHandler zkDeleteHandler,
+                 ZkReadHandler zkReadHandler,
+                 ZkMetadataHandler zkMetadataHandler) {
+        this.zkDeleteHandler = zkDeleteHandler;
+        this.zkReadHandler = zkReadHandler;
+        this.zkMetadataHandler = zkMetadataHandler;
         this.params = params;
-        // TODO: expose way to add to the blacklist
-        pathBlackList.add("/zookeeper");
+        pathBlackList.addAll(params.getBlacklist());
     }
 
     @Override
     public void run() {
-        if (params.listMetaAccessors) {
-            printMetaAccessors();
-        } else if (params.help) {
+        if (params.isListMetaAccessors()) {
+            zkMetadataHandler.getMetaAccessorMethodNames().forEach(System.out::println);
+        } else if (params.isHelp()) {
             params.printUsage();
         } else {
             doCliActions();
@@ -44,47 +43,24 @@ public class ZkCli implements Runnable {
     }
 
     private void doCliActions() {
-        CuratorFramework client = getCluster(params).orElseThrow(
+        CuratorFramework client = params.getCluster().orElseThrow(
             () -> new IllegalArgumentException("Please provide a valid connection string or cluster alias"));
+        String clusterId = params.getCluster() == null ? params.getZkConnect() : params.getFriendlyName();
         try {
             while (true) {
                 try {
                     client.start();
                     if (!client.blockUntilConnected(10, TimeUnit.SECONDS)) {
-                        throw new IllegalStateException("Could not connect to named cluster "
-                                                                + params.cluster
+                        throw new IllegalStateException("Could not connect to " + clusterId
                                                                 + " within timeout. Check your connections.");
                     }
                     break;
                 } catch (InterruptedException e) {
                     System.err.println("Interrupted while trying to connect, retrying");
-                } catch (Throwable connectionMethodInvalidException) {
-                    throw new RuntimeException("Connection Failed - Ensure connection string is valid",
-                                                      connectionMethodInvalidException);
                 }
             }
-            System.err.println("Established connection to "
-                    + (params.cluster == null ? params.zkConnect : params.cluster));
-            params.positionalParameters.forEach(path -> {
-                if (params.listChildren) {
-                    printChildren(client, path, params.printPaths);
-                }
-                if (params.getData) {
-                    printPathData(client, path);
-                }
-                if (params.getMeta) {
-                    printPathMetaData(client, path, params.specificMetaFieldGetter);
-                }
-                if (params.deleteNodeNonRecursive) {
-                    deleteNodeNonRecursive(client, path);
-                }
-                if (params.deleteNodeRecursive) {
-                    deleteNodeRecursive(client, path);
-                }
-                if (params.deleteChildrenOfNode) {
-                    deleteChildrenOfNode(client, path);
-                }
-            });
+            System.err.println("Established connection to " + clusterId);
+            params.getPositionalParameters().forEach(path -> runCliActionsForPath(client, path));
         } finally {
             if (client != null) {
                 try {
@@ -96,99 +72,25 @@ public class ZkCli implements Runnable {
         }
     }
 
-    private Optional<CuratorFramework> getCluster(CliParameters cliParameters) {
-        try {
-            return Optional.ofNullable(cliParameters.cluster == null || cliParameters.cluster.isEmpty()
-                    ? ZkClusterManager.buildClient(cliParameters.zkConnect)
-                    : ZkClusterManager.getClient(cliParameters.cluster));
-        } catch (RuntimeException ex) {
-            return Optional.empty();
+    private void runCliActionsForPath(CuratorFramework client, String path) {
+        if (params.isListChildren()) {
+            zkReadHandler.getChildren(client, path, params.isPrintPaths()).forEach(System.out::println);
+        }
+        if (params.isGetData()) {
+            System.out.println(zkReadHandler.getPathData(client, path));
+        }
+        if (params.isGetMeta()) {
+            System.out.println(zkMetadataHandler.getPathMetaData(client, path, params.getSpecificMetaFieldGetter()));
+        }
+        if (params.isDeleteChildrenOfNode()) {
+            zkDeleteHandler.deleteChildrenOfNode(client, path, pathBlackList);
+        }
+        if (params.isDeleteNodeNonRecursive()) {
+            zkDeleteHandler.deleteNodeNonRecursive(client, path, pathBlackList);
+        }
+        if (params.isDeleteNodeRecursive()) {
+            zkDeleteHandler.deleteNodeRecursive(client, path, pathBlackList);
         }
     }
 
-    private void printPathData(CuratorFramework client, String path) {
-        try {
-            System.out.println(new String(client.getData().forPath(path), CHARSET));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void printPathMetaData(CuratorFramework client, String path, String metadataItemGetterName) {
-        try {
-            System.out.println(formatMetaData(client.checkExists().forPath(path), metadataItemGetterName));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void printMetaAccessors() {
-        try {
-            Arrays.stream(Stat.class.getDeclaredMethods())
-                    .filter(method -> method.getParameterCount() == 0)
-                    .map(Method::getName)
-                    .forEach(System.out::println);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private String formatMetaData(Stat stat, String metadataItemGetterName) {
-        try {
-            return metadataItemGetterName == null || metadataItemGetterName.isEmpty()
-                    ? stat.toString()
-                    : Stat.class.getDeclaredMethod(metadataItemGetterName)
-                    .invoke(stat)
-                    .toString();
-        } catch (RuntimeException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private String formatNodeName(String path, String child, boolean includePath) {
-        StringJoiner joiner = new StringJoiner(path.equals("/") ? "" : "/");
-        return (includePath ? joiner.add(path) : joiner)
-                .add(child).toString();
-    }
-
-    private void printChildren(CuratorFramework client, String path, boolean printPaths) {
-        try {
-            client.getChildren().forPath(path).stream()
-                    .map(String::new)
-                    .map(child -> formatNodeName(path, child, printPaths))
-                    .forEach(System.out::println);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @VisibleForTesting
-    void deleteNodeNonRecursive(CuratorFramework client, String path) {
-        try {
-            client.delete().forPath(path);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @VisibleForTesting
-    void deleteNodeRecursive(CuratorFramework client, String path) {
-        try {
-            client.delete().deletingChildrenIfNeeded().forPath(path);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @VisibleForTesting
-    void deleteChildrenOfNode(CuratorFramework client, String path) {
-        try {
-            client.getChildren().forPath(path).stream()
-                    .map(c -> path.endsWith("/") ? path + c : path + "/" + c)
-                    .filter(fullPath -> !pathBlackList.contains(fullPath))
-                    .forEach(fullPath -> deleteNodeRecursive(client, fullPath));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

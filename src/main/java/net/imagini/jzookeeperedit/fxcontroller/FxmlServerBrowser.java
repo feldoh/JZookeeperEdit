@@ -23,7 +23,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
-import net.imagini.jzookeeperedit.FxChildScene;
+import net.imagini.jzookeeperedit.ClusterAwareFxChildScene;
 import net.imagini.jzookeeperedit.FxSceneManager;
 import net.imagini.jzookeeperedit.ZkClusterManager;
 import net.imagini.jzookeeperedit.ZkNode;
@@ -57,12 +57,13 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
-public class FxmlServerBrowser implements Initializable, FxChildScene {
+public class FxmlServerBrowser implements Initializable, ClusterAwareFxChildScene {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FxmlServerBrowser.class);
     private static final Charset CHARSET = java.nio.charset.StandardCharsets.UTF_8;
     private static final byte[] EMPTY_BYTES = "".getBytes(CHARSET);
 
+    private ZkClusterManager clusterManager;
     private FxSceneManager fxSceneManager;
 
     @FXML private TextArea text;
@@ -72,8 +73,8 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
     @FXML private TreeView<ZkNode> browser;
     @FXML private Accordion accordionData;
     @FXML private TitledPane paneData;
-    @FXML private TitledPane paneMetadata;
 
+    @FXML private TitledPane paneMetadata;
     @FXML private Label labcZxid;
     @FXML private Label labctime;
     @FXML private Label labmZxid;
@@ -91,6 +92,18 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
         this.fxSceneManager = fxSceneManager;
     }
 
+    @Override
+    public void setZkClusterManager(ZkClusterManager clusterManager) {
+        this.clusterManager = clusterManager;
+        refreshClusters();
+    }
+
+    private void refreshClusters() {
+        if (clusterManager != null) {
+            clusterManager.getClusters().forEach(this::addClusterToTree);
+        }
+    }
+
     private void loadData(ZkTreeNode treeNode) {
         text.setText(treeNode.getData());
         text.setDisable(false);
@@ -101,7 +114,6 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
     public void initialize(URL location, ResourceBundle resources) {
         browser.setCellFactory(new ZkTreeNodeCellFactory());
         browser.setRoot(new TreeItem<>(new ZkNode(null, "Servers")));
-        ZkClusterManager.getClusters().forEach(this::addClusterToTree);
 
         browser.setOnMouseClicked((MouseEvent mouseEvent) -> {
             TreeItem<ZkNode> item = getSelectedItem();
@@ -232,18 +244,20 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
 
         String friendlyName = String.valueOf(newClusterWizard.getSettings().get(txtFriendlyName.getId()));
         String zkConnect = String.valueOf(newClusterWizard.getSettings().get(txtZkConnect.getId()));
-        CuratorFramework zkClient = ZkClusterManager.addclient(friendlyName, zkConnect);
-        addClusterToTree(friendlyName, zkClient);
+        clusterManager.addclient(friendlyName, zkConnect)
+                                            .ifPresent(client -> addClusterToTree(friendlyName, client));
     }
 
     private void addClusterToTree(String friendlyName, CuratorFramework zkClient) {
-        browser.getRoot().getChildren().add(new ZkTreeNode(
+        TreeItem<ZkNode> root = browser.getRoot();
+        root.getChildren().add(new ZkTreeNode(
                 zkClient,
                 friendlyName,
                 0,
                 "/"
             )
         );
+        root.setExpanded(true);
     }
 
     @FXML
@@ -266,13 +280,13 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
     @FXML
     void saveServerInfo() {
         try {
-            ZkClusterManager.dumpConnectionDetails();
+            clusterManager.dumpConnectionDetails();
         } catch (IOException writeFailedException) {
             LOGGER.error("Failed to write server details to disk", writeFailedException);
             ExceptionDialog exceptionDialog = new ExceptionDialog(writeFailedException);
             exceptionDialog.setTitle("Exporting Server Details Failed");
             exceptionDialog.setHeaderText("Unable to write config file to\n"
-                    .concat(ZkClusterManager.clusterConfigFile.getAbsolutePath()));
+                    .concat(clusterManager.getConfigFilePath()));
             exceptionDialog.showAndWait();
         }
     }
@@ -529,7 +543,7 @@ public class FxmlServerBrowser implements Initializable, FxChildScene {
     private String getPathFromNodeWithClusterPrefix(TreeItem<ZkNode> selectedItem) {
         return selectedItem == null
                 ? ""
-                : ZkClusterManager.getFriendlyName(selectedItem.getValue().getClient()).orElse("")
+                : clusterManager.getFriendlyName(selectedItem.getValue().getClient()).orElse("")
                 + getPathFromNode(selectedItem);
     }
 

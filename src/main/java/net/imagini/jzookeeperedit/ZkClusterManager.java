@@ -18,17 +18,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import javax.naming.OperationNotSupportedException;
 
 public class ZkClusterManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(ZkClusterManager.class);
     private static final RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 5, 5000);
-    private static final Map<String, CuratorFramework> zkClients = new HashMap<>(10);
-    private static final Properties properties = new Properties();
-    private static final File workingdir;
-    public static final File clusterConfigFile;
-    
-    static {
+    private final Map<String, CuratorFramework> zkClients = new HashMap<>(10);
+    private final Properties properties = new Properties();
+    private final File workingdir;
+    private final File clusterConfigFile;
+
+    /**
+     * Loads initial cluster list from a config file stored in the working directory.
+     */
+    public ZkClusterManager() {
         workingdir = new File(System.getProperty("user.home"), ".JZookeeperEdit");
         if (!workingdir.exists()) {
             if (!workingdir.mkdirs()) {
@@ -56,12 +58,19 @@ public class ZkClusterManager {
         }
     }
 
+    public String getConfigFilePath() {
+        return clusterConfigFile.getAbsolutePath();
+    }
+
     /**
      * Create a new client and cache it with a friendly name for later lookup.
      */
-    public static CuratorFramework addclient(String friendlyName, String connectionString) {
-        CuratorFramework client = buildClient(connectionString);
-        zkClients.put(friendlyName, client);
+    public Optional<CuratorFramework> addclient(String friendlyName, String connectionString) {
+        if (friendlyName == null || friendlyName.isEmpty()) {
+            throw new IllegalArgumentException("Cannot add a named connection with null name.");
+        }
+        Optional<CuratorFramework> client = buildClient(connectionString);
+        zkClients.put(friendlyName, client.orElse(null));
         properties.put(friendlyName, connectionString);
         return client;
     }
@@ -69,21 +78,25 @@ public class ZkClusterManager {
     /**
      * Build a new client from a connection string.
      */
-    public static CuratorFramework buildClient(String connectionString) {
-        return CuratorFrameworkFactory.newClient(connectionString, retryPolicy);
+    public Optional<CuratorFramework> buildClient(String connectionString) {
+        try {
+            return Optional.of(CuratorFrameworkFactory.newClient(connectionString, retryPolicy));
+        } catch (Exception ex) {
+            return Optional.empty();
+        }
     }
 
     /**
      * Retrieve an existing client via it's friendly name.
      */
-    public static CuratorFramework getClient(String clusterName) {
-        return zkClients.get(clusterName);
+    public Optional<CuratorFramework> getClient(String clusterName) {
+        return Optional.ofNullable(zkClients.get(clusterName));
     }
 
     /**
      * Inverse lookup for finding the friendly name assigned to a client.
      */
-    public static Optional<String> getFriendlyName(CuratorFramework curatorFramework) {
+    public Optional<String> getFriendlyName(CuratorFramework curatorFramework) {
         return zkClients.entrySet().stream()
                 .filter(entry -> curatorFramework.equals(entry.getValue()))
                 .map(Map.Entry::getKey)
@@ -93,17 +106,13 @@ public class ZkClusterManager {
     /**
      * Save current set of connection details to the user clusters file.
      */
-    public static void dumpConnectionDetails() throws IOException {
+    public void dumpConnectionDetails() throws IOException {
         try (OutputStream output = new FileOutputStream(clusterConfigFile)) {
             properties.store(output, "clusters");
         }
     }
     
-    public static Map<String, CuratorFramework> getClusters() {
+    public Map<String, CuratorFramework> getClusters() {
         return Collections.unmodifiableMap(zkClients);
-    }
-    
-    private ZkClusterManager() throws OperationNotSupportedException {
-        throw new OperationNotSupportedException("All methods of this class are static");
     }
 }
