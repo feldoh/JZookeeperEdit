@@ -158,16 +158,17 @@ public class ZkTreeNode extends TreeItem<ZkNode> {
     /**
      * Retrieve data content for the node from the server.
      */
-    public String getData() {
+    public Optional<String> getData() throws Exception {
         if (path.isEmpty()) {
-            return "";
+            return Optional.empty();
         }
         try {
             byte[] data = getClient().getData().forPath(path);
-            return data == null ? "" : new String(data, CHARSET);
+            return Optional.ofNullable(data)
+                           .map(bytes -> new String(bytes, CHARSET));
         } catch (Exception ex) {
             LOGGER.error(String.format("Error while retrieving data for %s", getCanonicalPath()), ex);
-            return "";//TODO pop up an error
+            throw ex;
         }
     }
 
@@ -177,7 +178,7 @@ public class ZkTreeNode extends TreeItem<ZkNode> {
     public boolean save(byte[] bytes) {
         try {
             if (path.isEmpty()) {
-                return false; //TODO Show error, cant save outside a ZK node
+                return false;
             }
             getClient().setData().forPath(path, bytes);
             return true;
