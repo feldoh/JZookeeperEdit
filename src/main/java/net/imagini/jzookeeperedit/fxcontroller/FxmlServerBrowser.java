@@ -248,7 +248,7 @@ public class FxmlServerBrowser implements Initializable, ClusterAwareFxChildScen
 
         String friendlyName = String.valueOf(newClusterWizard.getSettings().get(txtFriendlyName.getId()));
         String zkConnect = String.valueOf(newClusterWizard.getSettings().get(txtZkConnect.getId()));
-        clusterManager.addclient(friendlyName, zkConnect)
+        clusterManager.addClient(friendlyName, zkConnect)
                                             .ifPresent(client -> addClusterToTree(friendlyName, client));
     }
 

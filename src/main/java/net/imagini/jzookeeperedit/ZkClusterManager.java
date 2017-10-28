@@ -51,7 +51,7 @@ public class ZkClusterManager {
         }
         try (InputStream input = new FileInputStream(clusterConfigFile)) {
             properties.load(input);
-            properties.forEach((Object key, Object val) -> addclient((String) key, (String) val));
+            properties.forEach((Object key, Object val) -> addClient((String) key, (String) val));
         } catch (IOException ex) {
             LOGGER.error(String.format("Failed to read user cluster config file: %s",
                     clusterConfigFile.getAbsolutePath()), ex);
@@ -65,7 +65,7 @@ public class ZkClusterManager {
     /**
      * Create a new client and cache it with a friendly name for later lookup.
      */
-    public Optional<CuratorFramework> addclient(String friendlyName, String connectionString) {
+    public Optional<CuratorFramework> addClient(String friendlyName, String connectionString) {
         if (friendlyName == null || friendlyName.isEmpty()) {
             throw new IllegalArgumentException("Cannot add a named connection with null name.");
         }

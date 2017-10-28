@@ -194,14 +194,20 @@ public class ZkTreeNode extends TreeItem<ZkNode> {
         return super.getChildren();
     }
 
+    /**
+     * Check if the current node is a leaf.
+     * If we're at the root and the connection is closed we assume no.
+     * This avoids opening potentially invalid connections.
+     */
     @Override
     public boolean isLeaf() {
-        int numChildren = getStat()
-                              .orElseThrow(() -> new RuntimeException("Could not stat "
-                                                                              + getCanonicalPath() + "/"
-                                                                              + getValue().toString()))
-                              .getNumChildren();
-        return numChildren == 0;
+        // Until the connection is started we assume there might be some children to avoid opening extra connections.
+        if (!getClient().getState().equals(CuratorFrameworkState.STARTED) && getCanonicalPath().equals("/")) {
+            return false;
+        }
+        return getStat()
+                       .map(Stat::getNumChildren)
+                       .orElse(0) == 0;
     }
 
     @Override
