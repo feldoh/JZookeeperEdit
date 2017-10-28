@@ -19,10 +19,6 @@
         <name>VisualDNA</name>
     </organization>
 
-    <prerequisites>
-        <maven>3.0.1</maven>
-    </prerequisites>
-
     <dependencies>
         <dependency>
             <groupId>org.apache.curator</groupId>

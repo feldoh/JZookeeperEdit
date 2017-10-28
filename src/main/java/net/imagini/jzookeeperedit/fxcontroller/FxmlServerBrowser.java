@@ -257,7 +257,7 @@ public class FxmlServerBrowser implements Initializable, ClusterAwareFxChildScen
         root.getChildren().add(new ZkTreeNode(
                 zkClient,
                 friendlyName,
-                0,
+                true,
                 "/"
             )
         );
@@ -601,7 +601,7 @@ public class FxmlServerBrowser implements Initializable, ClusterAwareFxChildScen
     private void updateValidUiOptions(TreeItem<ZkNode> item) {
         if (item instanceof ZkTreeNode) {
             ZkTreeNode treeNode = (ZkTreeNode) item;
-            boolean isClusterNode = treeNode.getDepth() == 0;
+            boolean isClusterNode = treeNode.isRoot();
             btnAddSibling.setDisable(isClusterNode);
             btnDelete.setDisable(isClusterNode);
             btnSave.setDisable(isClusterNode);

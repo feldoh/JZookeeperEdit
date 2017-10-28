@@ -16,7 +16,26 @@ public class ZkNode {
     public final void setLabel(String nodeLabel) {
         this.label = Objects.requireNonNull(nodeLabel, "Node with null label would not be traversable");
     }
-    
+
+    @Override
+    public boolean equals(Object that) {
+        if (this == that) {
+            return true;
+        }
+        if (!(that instanceof ZkNode)) {
+            return false;
+        }
+
+        ZkNode zkNode = (ZkNode) that;
+
+        return label.equals(zkNode.label);
+    }
+
+    @Override
+    public int hashCode() {
+        return label.hashCode();
+    }
+
     public final CuratorFramework getClient() {
         return zkClient;
     }
