@@ -105,7 +105,11 @@ public class FxmlServerBrowser implements Initializable, ClusterAwareFxChildScen
     }
 
     private void loadData(ZkTreeNode treeNode) {
-        text.setText(treeNode.getData());
+        try {
+            text.setText(treeNode.getData().orElse(""));
+        } catch (Exception e) {
+            showError("Failed to read node content");
+        }
         text.setDisable(false);
         treeNode.loadChildren();
     }
@@ -216,7 +220,7 @@ public class FxmlServerBrowser implements Initializable, ClusterAwareFxChildScen
         ButtonType result = newClusterWizard.showAndWait().orElse(null);
 
         // Workaround for last page in Wizard not saving entries.
-        // TODO: Still needed?
+        // TODO: Switch away from buggy Wizards
         try {
             Method wizardUpdateSettingsMethod;
             wizardUpdateSettingsMethod = Wizard.class.getDeclaredMethod("readSettings", WizardPane.class);
@@ -244,7 +248,7 @@ public class FxmlServerBrowser implements Initializable, ClusterAwareFxChildScen
 
         String friendlyName = String.valueOf(newClusterWizard.getSettings().get(txtFriendlyName.getId()));
         String zkConnect = String.valueOf(newClusterWizard.getSettings().get(txtZkConnect.getId()));
-        clusterManager.addclient(friendlyName, zkConnect)
+        clusterManager.addClient(friendlyName, zkConnect)
                                             .ifPresent(client -> addClusterToTree(friendlyName, client));
     }
 
@@ -253,7 +257,7 @@ public class FxmlServerBrowser implements Initializable, ClusterAwareFxChildScen
         root.getChildren().add(new ZkTreeNode(
                 zkClient,
                 friendlyName,
-                0,
+                true,
                 "/"
             )
         );
@@ -263,18 +267,23 @@ public class FxmlServerBrowser implements Initializable, ClusterAwareFxChildScen
     @FXML
     void save() {
         TreeItem<ZkNode> item = getSelectedItem();
-
         if (item instanceof ZkTreeNode) {
             if (((ZkTreeNode) item).save(text.getText().getBytes(CHARSET))) {
-                new Alert(Alert.AlertType.INFORMATION,
-                    "Your data has been written to Zookeeper",
-                    ButtonType.OK).showAndWait();
+                showInfo("Your data has been written to Zookeeper");
+            } else {
+                showError("Unable to save data to the selected node");
             }
         } else {
-            new Alert(Alert.AlertType.ERROR,
-                    "You cant save changes to data outside a zkNode",
-                    ButtonType.OK).showAndWait();
+            showError("You cant save changes to data outside a zkNode");
         }
+    }
+
+    private void showError(String message) {
+        new Alert(Alert.AlertType.ERROR, message, ButtonType.OK).showAndWait();
+    }
+
+    private void showInfo(String message) {
+        new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK).showAndWait();
     }
 
     @FXML
@@ -592,7 +601,7 @@ public class FxmlServerBrowser implements Initializable, ClusterAwareFxChildScen
     private void updateValidUiOptions(TreeItem<ZkNode> item) {
         if (item instanceof ZkTreeNode) {
             ZkTreeNode treeNode = (ZkTreeNode) item;
-            boolean isClusterNode = treeNode.getDepth() == 0;
+            boolean isClusterNode = treeNode.isRoot();
             btnAddSibling.setDisable(isClusterNode);
             btnDelete.setDisable(isClusterNode);
             btnSave.setDisable(isClusterNode);
