@@ -1,4 +1,4 @@
-package net.imagini.jzookeeperedit;
+package net.imagini.jzookeeperedit.fx;
 
 public interface FxChildScene {
     /**

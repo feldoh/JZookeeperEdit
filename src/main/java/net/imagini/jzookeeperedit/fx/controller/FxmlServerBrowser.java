@@ -1,4 +1,4 @@
-package net.imagini.jzookeeperedit.fxcontroller;
+package net.imagini.jzookeeperedit.fx.controller;
 
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
@@ -23,12 +23,12 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
-import net.imagini.jzookeeperedit.ClusterAwareFxChildScene;
-import net.imagini.jzookeeperedit.FxSceneManager;
 import net.imagini.jzookeeperedit.ZkClusterManager;
 import net.imagini.jzookeeperedit.ZkNode;
 import net.imagini.jzookeeperedit.ZkTreeNode;
-import net.imagini.jzookeeperedit.fxview.ZkTreeNodeCellFactory;
+import net.imagini.jzookeeperedit.fx.ClusterAwareFxChildScene;
+import net.imagini.jzookeeperedit.fx.FxSceneManager;
+import net.imagini.jzookeeperedit.fx.view.ZkTreeNodeCellFactory;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.CuratorEvent;
 import org.apache.curator.framework.api.CuratorEventType;

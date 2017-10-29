@@ -1,10 +1,11 @@
-package net.imagini.jzookeeperedit;
+package net.imagini.jzookeeperedit.fx;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
+import net.imagini.jzookeeperedit.ZkClusterManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
