@@ -11,7 +11,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <mainClass>net.imagini.jzookeeperedit.MainApp</mainClass>
+        <mainClass>net.imagini.jzookeeperedit.fx.MainApp</mainClass>
         <slf4j.version>1.7.21</slf4j.version>
     </properties>
 
@@ -164,7 +164,19 @@
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
                 </executions>
+                <configuration>
+                    <excludes>
+                        <exclude>net/imagini/jzookeeperedit/fx/**</exclude>
+                    </excludes>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.eluder.coveralls</groupId>

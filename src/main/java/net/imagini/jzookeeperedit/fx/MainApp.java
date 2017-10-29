@@ -1,8 +1,10 @@
-package net.imagini.jzookeeperedit;
+package net.imagini.jzookeeperedit.fx;
 
 import javafx.application.Application;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
+import net.imagini.jzookeeperedit.ZkClusterManager;
+import net.imagini.jzookeeperedit.fx.FxSceneManager;
 import net.imagini.zkcli.CliParameters;
 import net.imagini.zkcli.ZkCli;
 

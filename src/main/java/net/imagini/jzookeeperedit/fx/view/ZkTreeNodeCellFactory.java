@@ -1,4 +1,4 @@
-package net.imagini.jzookeeperedit.fxview;
+package net.imagini.jzookeeperedit.fx.view;
 
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeView;
