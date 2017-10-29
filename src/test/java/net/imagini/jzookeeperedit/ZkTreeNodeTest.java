@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -186,29 +187,37 @@ public class ZkTreeNodeTest {
     }
 
     @Test
-    public void isLeaf() throws Exception {
+    public void testIsLeafIsTrueIfNodeHasNoChildren() throws Exception {
         String leafPath = VALID_PATH + "/" + "someLeaf";
         Stat mockLeafStat = Mockito.mock(Stat.class, "leafStat");
         when(mockStatBuilder.forPath(leafPath)).thenReturn(mockLeafStat);
         when(mockLeafStat.getNumChildren()).thenReturn(0);
-        assertFalse(new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH).isLeaf());
         assertThat(new ZkTreeNode(mockClient, "leafName",false, leafPath).isLeaf(), is(true));
     }
 
     @Test
-    public void getCanonicalPath() throws Exception {
+    public void testIsLeafIsFalseIfNodeHasChildren() throws Exception {
+        assertFalse(new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH).isLeaf());
+    }
+
+    @Test
+    public void testCanonicalPathGenerationNormalisesEmptyToSlash() throws Exception {
         assertThat(new ZkTreeNode(mockClient, NODE_NAME, true, "").getCanonicalPath(), equalTo("/"));
         assertThat(new ZkTreeNode(mockClient, NODE_NAME, false, "/some/path").getCanonicalPath(), equalTo("/some/path"));
     }
 
 
     @Test
-    public void getStat() throws Exception {
+    public void testGetStatUsesCache() throws Exception {
+        unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
+        unit.getStat(); // Should cache
+        unit.getStat();
+        Mockito.verify(mockStatBuilder, times(1)).forPath(VALID_PATH);
         assertThat(new ZkTreeNode(mockClient, NODE_NAME, false, VALID_PATH).getStat().orElse(null), equalTo(mockStat));
     }
 
     @Test
-    public void getStatFromServer() throws Exception {
+    public void testGetStatFromServerIgnoresCache() throws Exception {
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         unit.getStatFromServer(true); // Try and make it cache
         unit.getStatFromServer(true); // We should be ignoring the cache and getting anyway
@@ -217,7 +226,7 @@ public class ZkTreeNodeTest {
     }
 
     @Test
-    public void getStatFromServerWithoutCache() throws Exception {
+    public void getStatFromServerForcesServerCallOnNextRead() throws Exception {
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         unit.getStatFromServer(false); // Do not cache this result
         unit.getStat(); // We should be forced to re-get as we did not cache
@@ -225,15 +234,37 @@ public class ZkTreeNodeTest {
     }
 
     @Test
-    public void getData() throws Exception {
+    public void testGetDataReturnsValidContent() throws Exception {
         assertThat(new ZkTreeNode(mockClient, NODE_NAME, false, VALID_PATH).getData().orElse(null), equalTo(DATA));
     }
 
     @Test
-    public void save() throws Exception {
+    public void testSaveUsesDefaultEncoding() throws Exception {
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         unit.save(DATA);
         Mockito.verify(mockSetDataBuilder, times(1)).forPath(VALID_PATH, DATA.getBytes(CHARSET));
+    }
+
+    @Test
+    public void testEnsureActiveOpensLatentConnections() throws Exception {
+        when(mockClient.getState()).thenReturn(CuratorFrameworkState.LATENT, CuratorFrameworkState.STARTED);
+        unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
+        unit.getData(); // Should open connection
+        unit.getData(); // Should reuse connection
+        Mockito.verify(mockClient, times(1)).start();
+    }
+
+    @Test
+    public void testEqualsCatchesIdentity() {
+        assertTrue(new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH)
+                           .equals(new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH)));
+    }
+
+
+    @Test
+    public void testHashCodeVariesByPath() {
+        assertThat(new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH).hashCode(),
+                not(new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH + "TEST").hashCode()));
     }
 
 }

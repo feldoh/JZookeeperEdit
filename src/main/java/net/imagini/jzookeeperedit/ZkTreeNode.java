@@ -221,18 +221,17 @@ public class ZkTreeNode extends TreeItem<ZkNode> {
 
         ZkTreeNode zkTreeNode = (ZkTreeNode) that;
 
-        return !(isRoot() != zkTreeNode.isRoot()
-                         || (!getValue().equals(zkTreeNode.getValue()))
-                         || (!path.equals(zkTreeNode.path))) && (statCache != null
-                                                                   ? statCache.equals(zkTreeNode.statCache)
-                                                                   : zkTreeNode.statCache == statCache);
+        Stat thisStat = getStat().orElse(null);
+        Stat thatStat = zkTreeNode.getStat().orElse(null);
+
+        return getValue().equals(zkTreeNode.getValue())
+                       && path.equals(zkTreeNode.path);
     }
 
     @Override
     public int hashCode() {
         int result = (isRoot() ? 1 : 0);
         result = 31 * result + path.hashCode();
-        result = 31 * result + (statCache != null ? statCache.hashCode() : 0);
         result = 31 * result + getValue().hashCode();
         return result;
     }
