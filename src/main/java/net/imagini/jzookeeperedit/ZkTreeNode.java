@@ -221,9 +221,6 @@ public class ZkTreeNode extends TreeItem<ZkNode> {
 
         ZkTreeNode zkTreeNode = (ZkTreeNode) that;
 
-        Stat thisStat = getStat().orElse(null);
-        Stat thatStat = zkTreeNode.getStat().orElse(null);
-
         return getValue().equals(zkTreeNode.getValue())
                        && path.equals(zkTreeNode.path);
     }
