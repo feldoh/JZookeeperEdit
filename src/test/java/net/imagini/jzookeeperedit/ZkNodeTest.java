@@ -66,4 +66,16 @@ public class ZkNodeTest {
     public void getNullClient() throws Exception {
         assertNull(new ZkNode(null, NODE_LABEL).getClient());
     }
+
+    @Test
+    public void testIdenticalNodesAreEqual() {
+        ZkNode node = new ZkNode(null, NODE_LABEL);
+        assertTrue(node.equals(node));
+    }
+
+    @Test
+    public void testNonNodesAreNotEqual() {
+        ZkNode node = new ZkNode(null, NODE_LABEL);
+        assertFalse(node.equals(new Object()));
+    }
 }

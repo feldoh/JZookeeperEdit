@@ -260,11 +260,22 @@ public class ZkTreeNodeTest {
                            .equals(new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH)));
     }
 
-
     @Test
     public void testHashCodeVariesByPath() {
         assertThat(new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH).hashCode(),
                 not(new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH + "TEST").hashCode()));
+    }
+
+    @Test
+    public void testIdenticalNodesAreEqual() {
+        ZkTreeNode node = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
+        assertTrue(node.equals(node));
+    }
+
+    @Test
+    public void testNonNodesAreNotEqual() {
+        ZkTreeNode node = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
+        assertFalse(node.equals(new Object()));
     }
 
 }
