@@ -7,6 +7,7 @@ memcached/target
 *.iml
 *.ipr
 *.iws
+*.log
 .DS_Store
 atlassian-ide-plugin.xml
 messaging/test-output
