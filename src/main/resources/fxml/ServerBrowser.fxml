@@ -9,6 +9,8 @@
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.control.TreeView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.FlowPane?>
@@ -73,18 +75,18 @@
               <items>
                 <AnchorPane minHeight="60.0" minWidth="60.0" prefHeight="100.0" prefWidth="160.0">
                   <children>
-                    <Accordion fx:id="accordionData" minHeight="60.0" minWidth="50.0" prefHeight="360.0" prefWidth="354.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" expandedPane="$paneMetadata">
+                    <Accordion fx:id="accordionData" minHeight="60.0" minWidth="50.0" prefHeight="360.0" prefWidth="354.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                       <panes>
-                        <TitledPane animated="false" minHeight="50.0" minWidth="50.0" text="Data" fx:id="paneData">
+                        <TitledPane fx:id="paneData" animated="false" minHeight="50.0" minWidth="50.0" text="Data" expanded="false">
                           <content>
                             <TextArea fx:id="text" disable="true" minHeight="50.0" minWidth="50.0" prefHeight="312.0" prefWidth="350.0" text="" wrapText="true" />
                           </content>
                         </TitledPane>
-                        <TitledPane fx:id="paneMetadata" animated="false" text="Metadata">
+                        <TitledPane fx:id="paneMetadata" animated="false" text="Metadata" expanded="true">
                           <content>
                             <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                               <children>
-                                <GridPane alignment="CENTER" gridLinesVisible="false" hgap="10.0" minHeight="-1.0" minWidth="-1.0" prefHeight="284.0" prefWidth="350.0" vgap="2.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="0.0">
+                                <GridPane alignment="CENTER" hgap="10.0" minHeight="-1.0" minWidth="-1.0" prefHeight="284.0" prefWidth="350.0" vgap="2.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="0.0">
                                   <children>
                                     <Label text="cZxid" GridPane.columnIndex="0" GridPane.rowIndex="0" />
                                     <Label text="ctime" GridPane.columnIndex="0" GridPane.rowIndex="1" />
@@ -108,10 +110,176 @@
                                     <Label id="ephemeralOwner" fx:id="labephemeralOwner" text="" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="8" GridPane.valignment="CENTER" />
                                     <Label id="dataLength" fx:id="labdataLength" text="" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="9" GridPane.valignment="CENTER" />
                                     <Label id="numChildren" fx:id="labnumChildren" text="" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="10" GridPane.valignment="CENTER" />
+                                                      <Button alignment="CENTER_RIGHT" contentDisplay="GRAPHIC_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#cZxidToClipboard" text="Button" GridPane.columnIndex="2" GridPane.hgrow="NEVER" GridPane.vgrow="NEVER">
+                                                         <GridPane.margin>
+                                                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                         </GridPane.margin>
+                                                         <graphic>
+                                                            <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                                               <image>
+                                                                  <Image url="@../images/add-to-clipboard.png" />
+                                                               </image>
+                                                            </ImageView>
+                                                         </graphic>
+                                                         <padding>
+                                                            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                                                         </padding>
+                                                      </Button>
+                                                      <Button alignment="CENTER_RIGHT" contentDisplay="GRAPHIC_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#cTimeToClipboard" text="Button" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                                                         <graphic>
+                                                            <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                                               <image>
+                                                                  <Image url="@../images/add-to-clipboard.png" />
+                                                               </image>
+                                                            </ImageView>
+                                                         </graphic>
+                                                         <padding>
+                                                            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                                                         </padding>
+                                                         <GridPane.margin>
+                                                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                         </GridPane.margin>
+                                                      </Button>
+                                                      <Button alignment="CENTER_RIGHT" contentDisplay="GRAPHIC_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#mZxidToClipboard" text="Button" GridPane.columnIndex="2" GridPane.rowIndex="2">
+                                                         <graphic>
+                                                            <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                                               <image>
+                                                                  <Image url="@../images/add-to-clipboard.png" />
+                                                               </image>
+                                                            </ImageView>
+                                                         </graphic>
+                                                         <padding>
+                                                            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                                                         </padding>
+                                                         <GridPane.margin>
+                                                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                         </GridPane.margin>
+                                                      </Button>
+                                                      <Button alignment="CENTER_RIGHT" contentDisplay="GRAPHIC_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#mTimeToClipboard" text="Button" GridPane.columnIndex="2" GridPane.rowIndex="3">
+                                                         <graphic>
+                                                            <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                                               <image>
+                                                                  <Image url="@../images/add-to-clipboard.png" />
+                                                               </image>
+                                                            </ImageView>
+                                                         </graphic>
+                                                         <padding>
+                                                            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                                                         </padding>
+                                                         <GridPane.margin>
+                                                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                         </GridPane.margin>
+                                                      </Button>
+                                                      <Button alignment="CENTER_RIGHT" contentDisplay="GRAPHIC_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#pZxidToClipboard" text="Button" GridPane.columnIndex="2" GridPane.rowIndex="4">
+                                                         <graphic>
+                                                            <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                                               <image>
+                                                                  <Image url="@../images/add-to-clipboard.png" />
+                                                               </image>
+                                                            </ImageView>
+                                                         </graphic>
+                                                         <padding>
+                                                            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                                                         </padding>
+                                                         <GridPane.margin>
+                                                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                         </GridPane.margin>
+                                                      </Button>
+                                                      <Button alignment="CENTER_RIGHT" contentDisplay="GRAPHIC_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#cVersionToClipboard" text="Button" GridPane.columnIndex="2" GridPane.rowIndex="5">
+                                                         <graphic>
+                                                            <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                                               <image>
+                                                                  <Image url="@../images/add-to-clipboard.png" />
+                                                               </image>
+                                                            </ImageView>
+                                                         </graphic>
+                                                         <padding>
+                                                            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                                                         </padding>
+                                                         <GridPane.margin>
+                                                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                         </GridPane.margin>
+                                                      </Button>
+                                                      <Button alignment="CENTER_RIGHT" contentDisplay="GRAPHIC_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#dataVersionToClipboard" text="Button" GridPane.columnIndex="2" GridPane.rowIndex="6">
+                                                         <padding>
+                                                            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                                                         </padding>
+                                                         <graphic>
+                                                            <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                                               <image>
+                                                                  <Image url="@../images/add-to-clipboard.png" />
+                                                               </image>
+                                                            </ImageView>
+                                                         </graphic>
+                                                         <GridPane.margin>
+                                                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                         </GridPane.margin>
+                                                      </Button>
+                                                      <Button alignment="CENTER_RIGHT" contentDisplay="GRAPHIC_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#aclVersionToClipboard" text="Button" GridPane.columnIndex="2" GridPane.rowIndex="7">
+                                                         <padding>
+                                                            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                                                         </padding>
+                                                         <graphic>
+                                                            <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                                               <image>
+                                                                  <Image url="@../images/add-to-clipboard.png" />
+                                                               </image>
+                                                            </ImageView>
+                                                         </graphic>
+                                                         <GridPane.margin>
+                                                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                         </GridPane.margin>
+                                                      </Button>
+                                                      <Button alignment="CENTER_RIGHT" contentDisplay="GRAPHIC_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#ephemeralOwnerToClipboard" text="Button" GridPane.columnIndex="2" GridPane.rowIndex="8">
+                                                         <padding>
+                                                            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                                                         </padding>
+                                                         <graphic>
+                                                            <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                                               <image>
+                                                                  <Image url="@../images/add-to-clipboard.png" />
+                                                               </image>
+                                                            </ImageView>
+                                                         </graphic>
+                                                         <GridPane.margin>
+                                                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                         </GridPane.margin>
+                                                      </Button>
+                                                      <Button alignment="CENTER_RIGHT" contentDisplay="GRAPHIC_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#dataLengthToClipboard" text="Button" GridPane.columnIndex="2" GridPane.rowIndex="9">
+                                                         <padding>
+                                                            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                                                         </padding>
+                                                         <graphic>
+                                                            <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                                               <image>
+                                                                  <Image url="@../images/add-to-clipboard.png" />
+                                                               </image>
+                                                            </ImageView>
+                                                         </graphic>
+                                                         <GridPane.margin>
+                                                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                         </GridPane.margin>
+                                                      </Button>
+                                                      <Button alignment="CENTER_RIGHT" contentDisplay="GRAPHIC_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#numChildrenToClipboard" text="Button" GridPane.columnIndex="2" GridPane.rowIndex="10">
+                                                         <padding>
+                                                            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                                                         </padding>
+                                                         <graphic>
+                                                            <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                                               <image>
+                                                                  <Image url="@../images/add-to-clipboard.png" />
+                                                               </image>
+                                                            </ImageView>
+                                                         </graphic>
+                                                         <GridPane.margin>
+                                                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                         </GridPane.margin>
+                                                      </Button>
                                   </children>
                                   <columnConstraints>
                                     <ColumnConstraints hgrow="SOMETIMES" maxWidth="164.0" minWidth="10.0" prefWidth="128.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="203.0" minWidth="10.0" prefWidth="202.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="243.0" minWidth="10.0" prefWidth="173.0" />
+                                                      <ColumnConstraints hgrow="NEVER" maxWidth="203.0" minWidth="10.0" prefWidth="47.0" />
                                   </columnConstraints>
                                   <rowConstraints>
                                     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
