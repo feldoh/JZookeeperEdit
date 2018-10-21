@@ -19,6 +19,8 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -53,6 +55,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
@@ -606,5 +609,57 @@ public class FxmlServerBrowser implements Initializable, ClusterAwareFxChildScen
             btnDelete.setDisable(isClusterNode);
             btnSave.setDisable(isClusterNode);
         }
+    }
+
+    private void toClipboard(Supplier<String> textSupplier) {
+        ClipboardContent content = new ClipboardContent();
+        content.putString(textSupplier.get());
+        Clipboard.getSystemClipboard().setContent(content);
+    }
+
+    @FXML
+    void cZxidToClipboard() {
+        toClipboard(labcZxid::getText);
+    }
+
+    @FXML
+    void cTimeToClipboard() {
+        toClipboard(labctime::getText);
+    }
+    @FXML
+    void aclVersionToClipboard() {
+        toClipboard(labaclVersion::getText);
+    }
+    @FXML
+    void cVersionToClipboard() {
+        toClipboard(labcversion::getText);
+    }
+    @FXML
+    void dataLengthToClipboard() {
+        toClipboard(labdataLength::getText);
+    }
+    @FXML
+    void dataVersionToClipboard() {
+        toClipboard(labdataversion::getText);
+    }
+    @FXML
+    void ephemeralOwnerToClipboard() {
+        toClipboard(labephemeralOwner::getText);
+    }
+    @FXML
+    void mTimeToClipboard() {
+        toClipboard(labmtime::getText);
+    }
+    @FXML
+    void mZxidToClipboard() {
+        toClipboard(labmZxid::getText);
+    }
+    @FXML
+    void pZxidToClipboard() {
+        toClipboard(labpZxid::getText);
+    }
+    @FXML
+    void numChildrenToClipboard() {
+        toClipboard(labnumChildren::getText);
     }
 }
