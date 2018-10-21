@@ -120,6 +120,7 @@
                         </configuration>
                         <goals>
                             <goal>check</goal>
+                            <goal>checkstyle</goal>
                         </goals>
                     </execution>
                 </executions>

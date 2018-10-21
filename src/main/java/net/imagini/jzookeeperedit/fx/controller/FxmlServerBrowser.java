@@ -626,38 +626,47 @@ public class FxmlServerBrowser implements Initializable, ClusterAwareFxChildScen
     void cTimeToClipboard() {
         toClipboard(labctime::getText);
     }
+
     @FXML
     void aclVersionToClipboard() {
         toClipboard(labaclVersion::getText);
     }
+
     @FXML
     void cVersionToClipboard() {
         toClipboard(labcversion::getText);
     }
+
     @FXML
     void dataLengthToClipboard() {
         toClipboard(labdataLength::getText);
     }
+
     @FXML
     void dataVersionToClipboard() {
         toClipboard(labdataversion::getText);
     }
+
     @FXML
     void ephemeralOwnerToClipboard() {
         toClipboard(labephemeralOwner::getText);
     }
+
     @FXML
     void mTimeToClipboard() {
         toClipboard(labmtime::getText);
     }
+
     @FXML
     void mZxidToClipboard() {
         toClipboard(labmZxid::getText);
     }
+
     @FXML
     void pZxidToClipboard() {
         toClipboard(labpZxid::getText);
     }
+
     @FXML
     void numChildrenToClipboard() {
         toClipboard(labnumChildren::getText);
