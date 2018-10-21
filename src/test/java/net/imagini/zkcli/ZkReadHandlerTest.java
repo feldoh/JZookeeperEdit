@@ -1,28 +1,29 @@
 package net.imagini.zkcli;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-
+import co.unruly.matchers.StreamMatchers;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.ExistsBuilder;
 import org.apache.curator.framework.api.GetChildrenBuilder;
 import org.apache.curator.framework.api.GetDataBuilder;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
-import co.unruly.matchers.StreamMatchers;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+
 public class ZkReadHandlerTest {
+    @Rule
+    public MockitoRule mockito = MockitoJUnit.rule();
 
     @Mock
     private CuratorFramework client;

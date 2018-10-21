@@ -1,32 +1,27 @@
 package net.imagini.zkcli;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import com.beust.jcommander.ParameterException;
+import net.imagini.jzookeeperedit.ZkClusterManager;
+import org.apache.curator.framework.CuratorFramework;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
-import org.apache.curator.framework.CuratorFramework;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.*;
 
-import net.imagini.jzookeeperedit.ZkClusterManager;
-
-import com.beust.jcommander.ParameterException;
-
-@RunWith(MockitoJUnitRunner.class)
 public class CliParametersTest {
+    @Rule
+    public MockitoRule mockito = MockitoJUnit.rule();
+
     @Mock
     private CuratorFramework mockClient;
     @Mock

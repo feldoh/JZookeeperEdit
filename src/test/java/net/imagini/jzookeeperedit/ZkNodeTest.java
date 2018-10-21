@@ -5,16 +5,18 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import static org.junit.Assert.*;
 
-@RunWith(MockitoJUnitRunner.class)
 public class ZkNodeTest {
     private static final String NODE_LABEL = "someNode";
+
+    @Rule
+    public MockitoRule mockito = MockitoJUnit.rule();
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();

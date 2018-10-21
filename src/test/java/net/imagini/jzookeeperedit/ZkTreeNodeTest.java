@@ -12,27 +12,21 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
 public class ZkTreeNodeTest {
     private static final Charset CHARSET = java.nio.charset.StandardCharsets.UTF_8;
     private static final String NODE_NAME = "aNode";
@@ -40,8 +34,8 @@ public class ZkTreeNodeTest {
     private static final String VALID_PATH = "/valid/path";
     private static final String DATA = "Some very interesting\nDATA!!!!!!!";
 
-    private List<String> validPathChildren;
-
+    @Rule
+    public MockitoRule mockito = MockitoJUnit.rule();
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
@@ -59,6 +53,7 @@ public class ZkTreeNodeTest {
     private GetChildrenBuilder mockGetChildrenBuilder;
 
     private ZkTreeNode unit;
+    private List<String> validPathChildren;
 
     @Before
     public void setup() throws Exception {

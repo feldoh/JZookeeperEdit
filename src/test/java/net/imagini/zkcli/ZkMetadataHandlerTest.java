@@ -1,16 +1,5 @@
 package net.imagini.zkcli;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.ExistsBuilder;
 import org.apache.curator.framework.api.GetChildrenBuilder;
@@ -18,13 +7,24 @@ import org.apache.curator.framework.api.GetDataBuilder;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
-@RunWith(MockitoJUnitRunner.class)
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
 public class ZkMetadataHandlerTest {
+    @Rule
+    public MockitoRule mockito = MockitoJUnit.rule();
+
     @Mock
     private CuratorFramework client;
 
