@@ -142,8 +142,9 @@ public class CliParameters {
      */
     public CliParameters(String[] args, ZkClusterManager clusterManager) {
         this.clusterManager = clusterManager;
-        argProcessor = new JCommander(this, args);
+        argProcessor = new JCommander(this);
         argProcessor.setProgramName(programName);
+        argProcessor.parse(args);
         blacklist.add("/zookeeper");
     }
 
