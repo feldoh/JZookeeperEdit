@@ -13,7 +13,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <mainClass>net.imagini.jzookeeperedit.fx.MainApp</mainClass>
         <slf4j.version>1.7.25</slf4j.version>
-     	<java.version>1.9</java.version>
+     	<java.version>9</java.version>
      </properties>
 
     <organization>
