@@ -22,11 +22,8 @@ Pre-built binaries are available for most common platforms on [Bintray](https://
 
 Requirements
 ==============
-This tool was written using Java 1.8 with JavaFX and Maven as its build tool.
-This means you will need the environment variable JAVA_HOME to point to a valid Java 8 Home.
-
-**Note that due to a limitation of controlsfx you will need to use a version of this tool appropriate for your version of Java. This version of the tool requires at least Java 1.8.0_40**<br>
-The reason for this is discussed in [this](http://fxexperience.com/2014/09/announcing-controlsfx-8-20-7/) blog post
+This tool was written using Java 11 with OpenFX and Maven as its build tool.
+This means you will need the environment variable JAVA_HOME to point to a valid Java 11 Home.
 
 
 Using the CLI
@@ -48,26 +45,14 @@ Several notable features include:
 
 Running using Maven
 ====================
-mvn jfx:run
-
-
-Creating a Jar
-===============
-mvn jfx:jar
-
-
-Creating a native binary
-=========================
-mvn jfx:native
-<br>**Note that this will build a native package for whatever environment you are on**
-<br>**For example, a dmg on a mac**
+mvn javafx:run
 
 
 Libraries & Tools
 =========================
-JavaFX Maven Plugin 8.7.0  - Simple JavaFX + Maven<br>
+OpenFX Maven Plugin 0.0.3  - Simple OpenFX + Maven<br>
 Apache Curator 2.11.0      - Simple ZooKeeper Wrapper<br>
-ControlsFX 8.40.12         - Dialogues<br>
-Java 1.8.0_102             - Language<br>
+ControlsFX 11.0.0          - Dialogues<br>
+Java 11                    - Language<br>
 Maven 3.3.9                - Lifecycle<br>
-JavaFX 8                   - GUI
+OpenFX 11                  - GUI
