@@ -72,7 +72,7 @@ public class ZkTreeNode extends TreeItem<ZkNode> {
     }
 
     /**
-     * Refresh the list of children
+     * Refresh the list of children.
      * @param filterPredicate A predicate for a filter which is applied to the stream of children.
      */
     public void loadChildren(Predicate<String> filterPredicate) {
@@ -105,6 +105,7 @@ public class ZkTreeNode extends TreeItem<ZkNode> {
     }
 
     /**
+     * Check if node is a root node.
      * @return true if the node is the root of a zookeeper tree.
      */
     public boolean isRoot() {
