@@ -158,7 +158,6 @@
                 <configuration>
                     <target>host</target>
                     <mainClass>${mainClass}</mainClass>
-                    <graalvmHome>C:\Program Files\Java\graalvm-ce-java11-20.2.0</graalvmHome>
                 </configuration>
                 <executions>
                     <execution>
