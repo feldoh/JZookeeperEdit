@@ -123,7 +123,7 @@ public class ZkDeleteHandlerTest {
         String protectedChild = "protected";
         String protectedChildPath = VALID_PATH + "/" + protectedChild;
         validPathChildren.add(protectedChild);
-        underTest.deleteNodeRecursive(client, VALID_PATH, new HashSet<String>(){{
+        underTest.deleteNodeRecursive(client, VALID_PATH, new HashSet<>() {{
             add(protectedZkMetaNode);
             add(protectedChildPath);
         }});
@@ -134,12 +134,12 @@ public class ZkDeleteHandlerTest {
     }
 
     @Test(expected = RuntimeException.class)
-    public void testDeleteNodeChildrenBadPath() throws Exception {
+    public void testDeleteNodeChildrenBadPath() {
         underTest.deleteChildrenOfNode(client, INVALID_PATH, Collections.singleton(protectedZkMetaNode));
     }
 
     @Test(expected = RuntimeException.class)
-    public void testDeleteNodeRecursiveBadPath() throws Exception {
+    public void testDeleteNodeRecursiveBadPath() {
         underTest.deleteNodeRecursive(client, INVALID_PATH, Collections.singleton(protectedZkMetaNode));
     }
 }

@@ -2,8 +2,6 @@ package net.imagini.zkcli;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.ExistsBuilder;
-import org.apache.curator.framework.api.GetChildrenBuilder;
-import org.apache.curator.framework.api.GetDataBuilder;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 import org.junit.Before;
@@ -19,7 +17,10 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ZkMetadataHandlerTest {
     @Rule
@@ -29,11 +30,7 @@ public class ZkMetadataHandlerTest {
     private CuratorFramework client;
 
     @Mock
-    private GetDataBuilder dataBuilder;
-    @Mock
     private ExistsBuilder statBuilder;
-    @Mock
-    private GetChildrenBuilder getChildrenBuilder;
 
     @Mock
     private Stat mockStat;

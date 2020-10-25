@@ -4,7 +4,6 @@ import org.apache.curator.framework.CuratorFramework;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
@@ -17,9 +16,6 @@ public class ZkNodeTest {
 
     @Rule
     public MockitoRule mockito = MockitoJUnit.rule();
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     @Mock
     CuratorFramework mockZkClient;
@@ -46,38 +42,38 @@ public class ZkNodeTest {
 
     @Test
     public void testNullLabelsAreNotAllowed() {
-        expectedException.expect(RuntimeException.class);
-        expectedException.expectMessage("label");
-        unit = new ZkNode(mockZkClient, null);
+        var expectedException = assertThrows(RuntimeException.class,
+                () -> new ZkNode(mockZkClient, null));
+        assertTrue(expectedException.getMessage().contains("label"));
     }
 
     @Test
     public void testSettingNullLabelsIsNotAllowed() {
         unit = new ZkNode(mockZkClient, "Initial");
-        expectedException.expect(RuntimeException.class);
-        expectedException.expectMessage("label");
-        unit.setLabel(null);
+        var expectedException = assertThrows(RuntimeException.class,
+                () -> unit.setLabel(null));
+        assertTrue(expectedException.getMessage().contains("label"));
     }
 
     @Test
-    public void getClient() throws Exception {
+    public void getClient() {
         assertSame(mockZkClient, new ZkNode(mockZkClient, NODE_LABEL).getClient());
     }
 
     @Test
-    public void getNullClient() throws Exception {
+    public void getNullClient() {
         assertNull(new ZkNode(null, NODE_LABEL).getClient());
     }
 
     @Test
     public void testIdenticalNodesAreEqual() {
         ZkNode node = new ZkNode(null, NODE_LABEL);
-        assertTrue(node.equals(node));
+        assertEquals(node, node);
     }
 
     @Test
     public void testNonNodesAreNotEqual() {
         ZkNode node = new ZkNode(null, NODE_LABEL);
-        assertFalse(node.equals(new Object()));
+        assertNotEquals(node, new Object());
     }
 }

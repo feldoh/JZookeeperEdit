@@ -11,7 +11,6 @@ import org.apache.zookeeper.data.Stat;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
@@ -22,8 +21,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
@@ -36,8 +41,6 @@ public class ZkTreeNodeTest {
 
     @Rule
     public MockitoRule mockito = MockitoJUnit.rule();
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     @Mock
     private CuratorFramework mockClient;
@@ -74,20 +77,20 @@ public class ZkTreeNodeTest {
     }
 
     @Test
-    public void testNodesWithoutLoadedChildrenAreNotFiltered() throws Exception {
+    public void testNodesWithoutLoadedChildrenAreNotFiltered() {
         unit = new ZkTreeNode(mockClient, NODE_NAME, false, VALID_PATH);
         assertFalse(unit.isFiltered());
     }
 
     @Test
-    public void testNodesStartUnfiltered() throws Exception {
+    public void testNodesStartUnfiltered() {
         unit = new ZkTreeNode(mockClient, NODE_NAME, false, VALID_PATH);
         unit.loadChildren();
         assertFalse(unit.isFiltered());
     }
 
     @Test
-    public void testFilteringSetsIsFiltered() throws Exception {
+    public void testFilteringSetsIsFiltered() {
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         unit.loadChildren((x) -> true);
         assertThat(unit.getChildren().stream(),
@@ -97,7 +100,7 @@ public class ZkTreeNodeTest {
     }
 
     @Test
-    public void testFilteringLimitsChildren() throws Exception {
+    public void testFilteringLimitsChildren() {
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         unit.loadChildren((x) -> x.endsWith("2") || x.endsWith("3"));
         assertThat(unit.getChildren().stream(),
@@ -107,7 +110,7 @@ public class ZkTreeNodeTest {
     }
 
     @Test
-    public void testGettingChildrenLoadsIfNotLoaded() throws Exception {
+    public void testGettingChildrenLoadsIfNotLoaded() {
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         assertThat(unit.getChildren().stream(),
                 StreamMatchers.equalTo(validPathChildren.stream()
@@ -116,7 +119,7 @@ public class ZkTreeNodeTest {
     }
 
     @Test
-    public void testGettingChildrenDoesNotLoadIfPreLoaded() throws Exception {
+    public void testGettingChildrenDoesNotLoadIfPreLoaded() {
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         assertThat(unit.getChildren().stream(),
                 StreamMatchers.equalTo(validPathChildren.stream()
@@ -133,7 +136,7 @@ public class ZkTreeNodeTest {
     }
 
     @Test
-    public void testInvalidateChildrenCacheCausesGetChildrenToReloadOnNextCall() throws Exception {
+    public void testInvalidateChildrenCacheCausesGetChildrenToReloadOnNextCall() {
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         assertThat(unit.getChildren().stream(),
                 StreamMatchers.equalTo(validPathChildren.stream()
@@ -146,7 +149,7 @@ public class ZkTreeNodeTest {
     }
 
     @Test
-    public void testReloadingRemovesChildrenFilter() throws Exception {
+    public void testReloadingRemovesChildrenFilter() {
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         unit.loadChildren((x) -> x.endsWith("2") || x.endsWith("3"));
         assertThat(unit.getChildren().stream(),
@@ -191,12 +194,12 @@ public class ZkTreeNodeTest {
     }
 
     @Test
-    public void testIsLeafIsFalseIfNodeHasChildren() throws Exception {
+    public void testIsLeafIsFalseIfNodeHasChildren() {
         assertFalse(new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH).isLeaf());
     }
 
     @Test
-    public void testCanonicalPathGenerationNormalisesEmptyToSlash() throws Exception {
+    public void testCanonicalPathGenerationNormalisesEmptyToSlash() {
         assertThat(new ZkTreeNode(mockClient, NODE_NAME, true, "").getCanonicalPath(), equalTo("/"));
         assertThat(new ZkTreeNode(mockClient, NODE_NAME, false, "/some/path").getCanonicalPath(), equalTo("/some/path"));
     }
@@ -251,8 +254,8 @@ public class ZkTreeNodeTest {
 
     @Test
     public void testEqualsCatchesIdentity() {
-        assertTrue(new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH)
-                           .equals(new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH)));
+        assertEquals(new ZkTreeNode(mockClient, NODE_NAME, false, VALID_PATH),
+                new ZkTreeNode(mockClient, NODE_NAME, false, VALID_PATH));
     }
 
     @Test
@@ -264,13 +267,13 @@ public class ZkTreeNodeTest {
     @Test
     public void testIdenticalNodesAreEqual() {
         ZkTreeNode node = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
-        assertTrue(node.equals(node));
+        assertEquals(node, node);
     }
 
     @Test
     public void testNonNodesAreNotEqual() {
         ZkTreeNode node = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
-        assertFalse(node.equals(new Object()));
+        assertNotEquals(node, new Object());
     }
 
 }

@@ -14,7 +14,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.*;
 
@@ -98,8 +101,8 @@ public class CliParametersTest {
         assertEquals(Arrays.asList("/a/path", "/b/path"), underTest.getPositionalParameters());
 
         assertEquals("someCluster", underTest.getFriendlyName());
-        assertEquals(null, underTest.getSpecificMetaFieldGetter());
-        assertEquals(null, underTest.getZkConnect());
+        assertNull(underTest.getSpecificMetaFieldGetter());
+        assertNull(underTest.getZkConnect());
 
         assertTrue(underTest.isDeleteNodeNonRecursive());
         assertTrue(underTest.isDeleteChildrenOfNode());

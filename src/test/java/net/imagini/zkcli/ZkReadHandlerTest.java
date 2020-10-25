@@ -31,8 +31,6 @@ public class ZkReadHandlerTest {
     @Mock
     private GetDataBuilder dataBuilder;
     @Mock
-    private ExistsBuilder statBuilder;
-    @Mock
     private GetChildrenBuilder getChildrenBuilder;
 
     private ZkReadHandler underTest;
