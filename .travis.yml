@@ -1,7 +1,28 @@
+os:
+  - linux
+  - osx
+
+osx_image: xcode12.2
+
 language: java
 
+jdk:
+  - openjdk11
+
+env:
+  - GRAALVM_VERSION="20.2.0"
+
+install:
+  - |
+    if [[ "$TRAVIS_OS_NAME" == "osx" ]];   then DOWNLOAD_OS_NAME="darwin"; fi
+    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then DOWNLOAD_OS_NAME="linux"; fi
+    curl -LJ "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$GRAALVM_VERSION/graalvm-ce-java11-$DOWNLOAD_OS_NAME-amd64-$GRAALVM_VERSION.tar.gz" --output graalvm.tar.gz
+    tar -vxzf graalvm.tar.gz
 script:
+  - export GRAALVM_HOME="$(pwd)/graalvm-ce-$GRAALVM_VERSION" && if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export GRAALVM_HOME="$JAVA_HOME/Contents/Home"; fi
   - mvn clean verify
+  - mvn package
+
 
 after_success:
   - mvn clean test jacoco:report coveralls:report
