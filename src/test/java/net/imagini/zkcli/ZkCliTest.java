@@ -4,7 +4,6 @@ import org.apache.curator.framework.CuratorFramework;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
@@ -20,17 +19,20 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ZkCliTest {
     @Rule
     public MockitoRule mockito = MockitoJUnit.rule();
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     @Mock
     private CliParameters mockParams;
@@ -67,18 +69,20 @@ public class ZkCliTest {
     @Test
     public void testNoClusterProvidedThrowsException() {
         when(mockParams.getCluster()).thenReturn(Optional.empty());
-        expectedException.expect(IllegalArgumentException.class);
-        new ZkCli(mockParams, null, null, null).run();
+        assertThrows(IllegalArgumentException.class,
+                () -> new ZkCli(mockParams, null, null, null)
+                        .run());
     }
 
     @Test
     public void testCannotConnectThrowsException() throws InterruptedException {
         when(mockParams.getFriendlyName()).thenReturn("someCluster");
         when(mockParams.getCluster()).thenReturn(Optional.of(mockClient));
-        expectedException.expect(IllegalStateException.class);
-        expectedException.expectMessage("someCluster");
         when(mockClient.blockUntilConnected(anyInt(), any(TimeUnit.class))).thenReturn(false);
-        new ZkCli(mockParams, null, null, null).run();
+        var expectedException = assertThrows(IllegalStateException.class,
+                () -> new ZkCli(mockParams, null, null, null)
+                        .run());
+        assertTrue(expectedException.getMessage().contains("someCluster"));
     }
 
     @Test
