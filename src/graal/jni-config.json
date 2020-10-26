@@ -1,0 +1,59 @@
+[
+{
+  "name":"com.sun.glass.ui.Application",
+  "methods":[
+    {"name":"notifyThemeChanged","parameterTypes":["java.lang.String"] }, 
+    {"name":"reportException","parameterTypes":["java.lang.Throwable"] }
+  ]
+},
+{
+  "name":"com.sun.glass.ui.Screen",
+  "methods":[{"name":"<init>","parameterTypes":["long","int","int","int","int","int","int","int","int","int","int","int","int","int","int","int","float","float","float","float"] }]
+},
+{
+  "name":"com.sun.glass.ui.Screen[]"
+},
+{
+  "name":"com.sun.prism.impl.PrismSettings",
+  "fields":[
+    {"name":"disableD3D9Ex"}, 
+    {"name":"forceGPU"}, 
+    {"name":"isVsyncEnabled"}, 
+    {"name":"verbose"}
+  ]
+},
+{
+  "name":"java.lang.Class",
+  "methods":[{"name":"forName","parameterTypes":["java.lang.String","boolean","java.lang.ClassLoader"] }]
+},
+{
+  "name":"java.lang.ClassLoader",
+  "methods":[
+    {"name":"getPlatformClassLoader","parameterTypes":[] }, 
+    {"name":"loadClass","parameterTypes":["java.lang.String"] }
+  ]
+},
+{
+  "name":"java.lang.ClassNotFoundException"
+},
+{
+  "name":"java.lang.InternalError",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.lang.NoSuchMethodError"
+},
+{
+  "name":"java.lang.Runnable",
+  "methods":[{"name":"run","parameterTypes":[] }]
+},
+{
+  "name":"sun.instrument.InstrumentationImpl",
+  "methods":[
+    {"name":"<init>","parameterTypes":["long","boolean","boolean"] }, 
+    {"name":"loadClassAndCallAgentmain","parameterTypes":["java.lang.String","java.lang.String"] }, 
+    {"name":"loadClassAndCallPremain","parameterTypes":["java.lang.String","java.lang.String"] }, 
+    {"name":"transform","parameterTypes":["java.lang.Module","java.lang.ClassLoader","java.lang.String","java.lang.Class","java.security.ProtectionDomain","byte[]","boolean"] }
+  ]
+}
+]
