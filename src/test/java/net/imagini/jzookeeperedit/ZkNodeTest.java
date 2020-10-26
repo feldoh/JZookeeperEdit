@@ -1,6 +1,7 @@
 package net.imagini.jzookeeperedit;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.controlsfx.dialog.Wizard;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -24,7 +25,7 @@ public class ZkNodeTest {
 
     @Before
     public void setup() {
-        Mockito.verifyZeroInteractions(mockZkClient);
+        Mockito.verifyNoInteractions(mockZkClient);
     }
 
     @Test

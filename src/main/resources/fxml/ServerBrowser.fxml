@@ -34,7 +34,7 @@
                           <children>
                             <ToolBar maxHeight="-Infinity" prefHeight="34.0" prefWidth="332.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                               <items>
-                                <Button fx:id="btnFilterChildren" cache="true" cacheHint="SPEED" mnemonicParsing="false" onAction="#doFilterChildren" styleClass="tree-cell-filtered" stylesheets="@../styles/Styles.css" text="Filter Children" />
+                                <Button fx:id="btnFilterChildren" cache="true" cacheHint="SPEED" mnemonicParsing="false" onAction="#doFilterChildren" styleClass="tree-cell-filtered" text="Filter Children" />
                                 <Button mnemonicParsing="false" onAction="#deleteChildrenWithFilter" text="Delete With Filter" />
                                 <Button fx:id="btnUnfilterChildren" mnemonicParsing="false" onAction="#doUnfilterChildren" text="Unfilter" />
                                                 <Button mnemonicParsing="false" onAction="#doGoto" text="Goto" />
@@ -44,7 +44,7 @@
                         </AnchorPane>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                           <children>
-                            <TreeView fx:id="browser" cache="true" cacheHint="SPEED" fixedCellSize="25.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="50.0" minWidth="50.0" prefHeight="518.0" prefWidth="332.0" stylesheets="@../styles/Styles.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                            <TreeView fx:id="browser" cache="true" cacheHint="SPEED" fixedCellSize="25.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="50.0" minWidth="50.0" prefHeight="518.0" prefWidth="332.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                           </children>
                         </AnchorPane>
                       </items>

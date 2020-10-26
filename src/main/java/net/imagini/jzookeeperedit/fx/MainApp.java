@@ -1,13 +1,14 @@
 package net.imagini.jzookeeperedit.fx;
 
+import impl.org.controlsfx.i18n.Localization;
 import javafx.application.Application;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import net.imagini.jzookeeperedit.ZkClusterManager;
-import net.imagini.jzookeeperedit.fx.FxSceneManager;
 import net.imagini.zkcli.CliParameters;
 import net.imagini.zkcli.ZkCli;
 
+import java.util.Locale;
 import java.util.Optional;
 
 
@@ -54,6 +55,8 @@ public class MainApp extends Application {
         if (primaryStage == null) {
             throw new IllegalStateException("Primary stage not set - Unable to display scene on primary primaryStage.");
         } else {
+            scene.getStylesheets().add(this.getClass().getResource("/styles/Styles.css").toExternalForm());
+            System.err.println(Localization.getString("Starting JZookeeperEdit"));
             primaryStage.setScene(scene);
             primaryStage.show();
         }

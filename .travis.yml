@@ -22,7 +22,7 @@ install:
 script:
   - export GRAALVM_HOME="$(pwd)/graalvm-ce-java11-$GRAALVM_VERSION" && if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export GRAALVM_HOME="$GRAALVM_HOME/Contents/Home"; fi
   - mvn clean verify
-  - mvn package
+  - mvn client:build client:link
 
 after_success:
   - mvn clean test jacoco:report coveralls:report
