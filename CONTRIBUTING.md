@@ -5,7 +5,7 @@ from people of all skill levels and backgrounds. Documentation, Wiki changes, pa
 When contributing to this repository, please first discuss the change you wish to make via issue,
 you will need an issue number for your PR to be accepted.
 
-If making CLI changes keep in mind this project aims to be CLI friendly, so thing about how calls could be chained,
+If making CLI changes keep in mind this project aims to be CLI friendly, so think about how calls could be chained,
 ideally provide examples in the README.md.
 
 All pull requests should target develop unless a special exemption is made such as for a critical fix.
