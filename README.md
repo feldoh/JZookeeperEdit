@@ -48,6 +48,7 @@ mvn javafx:run
 CodeSee
 ========
 You can see an overview of the structure of this project with a tour using this [CodeSee Map](https://app.codesee.io/maps/public/bd79ede0-20a5-11ec-8e87-072584a095ef)
+
 There is also a second simplified map for if you just want to understand the [CLI](https://app.codesee.io/maps/public/63599120-2484-11ec-95de-15c6708e23a1)
 
 
