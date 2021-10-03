@@ -1,22 +1,19 @@
+![JZookeeperEdit Icon](logo.png)
+
 JZookeeperEdit
 ==============
 
-[![Build Status](https://travis-ci.org/feldoh/JZookeeperEdit.svg?branch=master)](https://travis-ci.org/feldoh/JZookeeperEdit)
-[![Download](https://api.bintray.com/packages/feldoh/JZookeeperEdit/JZookeeperEdit/images/download.svg) ](https://bintray.com/feldoh/JZookeeperEdit/JZookeeperEdit/_latestVersion)
+[![Build Status](https://app.travis-ci.com/feldoh/JZookeeperEdit.svg?branch=develop)](https://app.travis-ci.com/github/feldoh/JZookeeperEdit)
 [![Join the chat at https://gitter.im/JZookeeperEdit/Lobby](https://badges.gitter.im/JZookeeperEdit/Lobby.svg)](https://gitter.im/JZookeeperEdit/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Coverage Status](https://coveralls.io/repos/github/feldoh/JZookeeperEdit/badge.svg)](https://coveralls.io/github/feldoh/JZookeeperEdit)
 
 A simple tool for browsing and modifying zookeeper trees.
 
+
 Config
 =======
 On first run it will create a config file in your home directory .JZookeeperEdit
 where it will save details of servers you connect to if you click "Save Cluster Details"
-
-
-Get a pre-built Binary
-======================
-Pre-built binaries are available for most common platforms on [Bintray](https://bintray.com/feldoh/JZookeeperEdit/JZookeeperEdit)
 
 
 Requirements
@@ -42,9 +39,17 @@ Several notable features include:
     `java -jar JZookeeperEdit.jar -m -f getNumChildren -c localhost /`
     Note that a full list of available accessors is available via `java -jar JZookeeperEdit.jar -a`
 
+
 Running using Maven
 ====================
 mvn javafx:run
+
+
+CodeSee
+========
+You can see an overview of the structure of this project with a tour using this [CodeSee Map](https://app.codesee.io/maps/public/bd79ede0-20a5-11ec-8e87-072584a095ef)
+
+There is also a second simplified map for if you just want to understand the [CLI](https://app.codesee.io/maps/public/63599120-2484-11ec-95de-15c6708e23a1)
 
 
 Libraries & Tools
