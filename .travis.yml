@@ -6,6 +6,7 @@ branches:
 os:
   - linux
   - osx
+  - windows
 
 osx_image: xcode12.2
 
@@ -21,6 +22,7 @@ install:
   - |
     if [[ "$TRAVIS_OS_NAME" == "osx" ]];   then DOWNLOAD_OS_NAME="darwin"; fi
     if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then DOWNLOAD_OS_NAME="linux"; fi
+    if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then DOWNLOAD_OS_NAME="windows"; fi
     curl -LJ "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$GRAALVM_VERSION/graalvm-ce-java11-$DOWNLOAD_OS_NAME-amd64-$GRAALVM_VERSION.tar.gz" --output graalvm.tar.gz
     tar -vxzf graalvm.tar.gz
 
