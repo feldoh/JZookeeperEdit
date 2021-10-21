@@ -20,28 +20,25 @@ env:
   - JAVA_HOME: /c/jdk
 
 before_install:
-  - >
+  - |
     if [ "$TRAVIS_OS_NAME" = "windows" ]; then 
       choco install jdk8;
       choco install maven;
       export PATH=$PATH:"/c/Program Files/Java/jdk1.8.0_191/bin";
     fi;
-  - >
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
       sudo apt install maven;
     fi;
-  - >
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
       brew install maven;
     fi;
 
 install:
-  - >
+  - |
     if [[ "$TRAVIS_OS_NAME" == "osx" ]] || [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
         curl -LJ "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$GRAALVM_VERSION/graalvm-ce-java11-$DOWNLOAD_OS_NAME-amd64-$GRAALVM_VERSION.tar.gz" --output graalvm.tar.gz;
         tar -vxzf graalvm.tar.gz;
     fi;
-  - >
     if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
         DOWNLOAD_OS_NAME="windows";
         curl -LJ "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$GRAALVM_VERSION/graalvm-ce-java11-$DOWNLOAD_OS_NAME-amd64-$GRAALVM_VERSION.zip" --output graalvm.zip;
