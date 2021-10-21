@@ -25,6 +25,7 @@ before_install:
       choco install maven;
       export PATH=$PATH:"/c/Program Files/Java/jdk1.8.0_191/bin";
       export PATH=$PATH:"/c/jdk";
+      refreshenv;
     fi;
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
       sudo apt install maven;
