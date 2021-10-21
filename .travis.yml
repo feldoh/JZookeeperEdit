@@ -7,11 +7,10 @@ os:
   - linux
   - osx
   - windows
-    language: sh
     before_install:
-      - export JAVA_HOME=${JAVA_HOME:-/c/jdk}
-      - export PATH=${JAVA_HOME}/bin:${PATH}
-      - choco install jdk8 -params 'installdir=c:\\jdk' -y
+      - choco install python3
+      - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
+      - python -m pip install --upgrade pip wheel
 
 osx_image: xcode12.2
 
