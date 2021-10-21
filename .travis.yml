@@ -17,7 +17,7 @@ jdk:
 
 env:
   - GRAALVM_VERSION="20.2.0"
-  - JAVA_HOME: /c/jdk
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then JAVA_HOME="/c/jdk"; fi;
 
 before_install:
   - |
