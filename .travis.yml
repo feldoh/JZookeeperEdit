@@ -1,13 +1,3 @@
-before_install:
-  - |-
-    case $TRAVIS_OS_NAME in
-      windows)
-        choco install jdk8
-        export PATH=$PATH:"/c/Program Files/Java/jdk1.8.0_191/bin"
-        java -version
-        ;;
-    esac
-
 branches:
   only:
   - master
@@ -17,6 +7,7 @@ os:
   - linux
   - osx
   - windows
+    language: shell
 
 osx_image: xcode12.2
 
@@ -27,6 +18,14 @@ jdk:
 
 env:
   - GRAALVM_VERSION="20.2.0"
+  - JAVA_HOME: /c/jdk
+
+before_install:
+  - choco install jre8
+  - rm -rf $JAVA_HOME
+  - export PATH=$JAVA_HOME/bin
+  - choco install jdk8 -params 'installdir=c:\\jdk'
+  - java -version
 
 install:
   - |
