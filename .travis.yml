@@ -24,7 +24,6 @@ before_install:
     if [ "$TRAVIS_OS_NAME" = "windows" ]; then 
       choco install jdk8;
       export PATH=$PATH:"/c/Program Files/Java/jdk1.8.0_191/bin";
-      java -version;
     fi;
 
 install:
