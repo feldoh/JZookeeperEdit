@@ -52,7 +52,7 @@ install:
     if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
         DOWNLOAD_OS_NAME="windows";
         curl -LJ "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$GRAALVM_VERSION/graalvm-ce-java11-$DOWNLOAD_OS_NAME-amd64-$GRAALVM_VERSION.zip" --output graalvm.zip;
-        sudo apt-get install unzip -y
+        apt-get install unzip -y
         unzip graalvm.zip;
     fi;
 
