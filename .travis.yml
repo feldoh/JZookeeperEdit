@@ -20,11 +20,13 @@ env:
   - JAVA_HOME: /c/jdk
 
 before_install:
-  - choco install jre8
-  - rm -rf $JAVA_HOME
-  - export PATH=$JAVA_HOME/bin
-  - choco install jdk8 -params 'installdir=c:\\jdk'
-  - java -version
+  - if [ "$TRAVIS_OS_NAME" = "windows" ] then 
+      choco install jre8
+      rm -rf $JAVA_HOME
+      export PATH=$JAVA_HOME/bin
+      choco install jdk8 -params 'installdir=c:\\jdk'
+      java -version
+    fi
 
 install:
   - |
