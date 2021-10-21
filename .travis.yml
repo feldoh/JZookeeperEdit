@@ -2,9 +2,9 @@ before_install:
   - |-
     case $TRAVIS_OS_NAME in
       windows)
-        choco install python3
-        export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
-        python -m pip install --upgrade pip wheel
+        export JAVA_HOME=${JAVA_HOME:-/c/jdk}
+        export PATH=${JAVA_HOME}/bin:${PATH}
+        choco install jdk8 -params 'installdir=c:\\jdk' -y
         ;;
     esac
 
