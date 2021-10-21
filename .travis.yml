@@ -22,10 +22,8 @@ env:
 before_install:
   - >
     if [ "$TRAVIS_OS_NAME" = "windows" ]; then 
-      choco install jre8;
-      rm -rf $JAVA_HOME;
-      export PATH=$JAVA_HOME/bin;
-      choco install jdk8 -params 'installdir=c:\\jdk';
+      choco install jdk8;
+      export PATH=$PATH:"/c/Program Files/Java/jdk1.8.0_191/bin";
       java -version;
     fi;
 
