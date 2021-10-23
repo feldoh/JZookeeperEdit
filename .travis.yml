@@ -21,11 +21,9 @@ env:
 before_install:
   - |
     if [ "$TRAVIS_OS_NAME" = "windows" ]; then 
-      choco install jdk8;
+      choco install jdk11;
       choco install maven;
       export PATH=$PATH:"/c/Program Files/Java/jdk1.8.0_191/bin";
-      export PATH=$PATH:"/c/jdk";
-      refreshenv;
     fi;
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
       sudo apt install maven;
@@ -36,15 +34,20 @@ before_install:
 
 install:
   - |
-    if [[ "$TRAVIS_OS_NAME" == "osx" ]] || [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        DOWNLOAD_OS_NAME="darwin";
+        curl -LJ "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$GRAALVM_VERSION/graalvm-ce-java11-$DOWNLOAD_OS_NAME-amd64-$GRAALVM_VERSION.tar.gz" --output graalvm.tar.gz;
+        tar -vxzf graalvm.tar.gz;
+    fi;
+    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        DOWNLOAD_OS_NAME="linux";
         curl -LJ "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$GRAALVM_VERSION/graalvm-ce-java11-$DOWNLOAD_OS_NAME-amd64-$GRAALVM_VERSION.tar.gz" --output graalvm.tar.gz;
         tar -vxzf graalvm.tar.gz;
     fi;
     if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
         DOWNLOAD_OS_NAME="windows";
         curl -LJ "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$GRAALVM_VERSION/graalvm-ce-java11-$DOWNLOAD_OS_NAME-amd64-$GRAALVM_VERSION.zip" --output graalvm.zip;
-        sudo apt-get install unzip -y;
-        unzip graalvm.zip;
+        7z.exe x graalvm.zip;
     fi;
 
 script:
