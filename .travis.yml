@@ -21,7 +21,7 @@ env:
 before_install:
   - |
     if [ "$TRAVIS_OS_NAME" = "windows" ]; then 
-      choco install openjdk --version=11.0;
+      choco install oraclejdk;
       choco install maven;
     fi;
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
