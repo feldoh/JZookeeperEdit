@@ -55,8 +55,14 @@ install:
 script:
   - export GRAALVM_HOME="$(pwd)/graalvm-ce-java11-$GRAALVM_VERSION" && if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export GRAALVM_HOME="$GRAALVM_HOME/Contents/Home"; fi
   - export JAVA_HOME="$GRAALVM_HOME"
-  - mvn clean verify
-  - mvn package
+  - |
+    if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
+        maven="$(find 'C:\ProgramData\chocolatey\lib\maven' -name mvn | head -n1)";
+    else
+        maven="mvn";
+    fi;
+  - $maven clean verify
+  - $maven package
 
 after_success:
   - mvn clean test jacoco:report coveralls:report
