@@ -6,10 +6,11 @@ branches:
 os:
   - linux
   - osx
+  - windows
 
 osx_image: xcode12.2
 
-language: java
+language: shell
 
 jdk:
   - openjdk11
@@ -17,18 +18,53 @@ jdk:
 env:
   - GRAALVM_VERSION="20.2.0"
 
+before_install:
+  - |
+    if [ "$TRAVIS_OS_NAME" = "windows" ]; then 
+      choco install maven;
+      refreshenv;
+    fi;
+    if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
+      sudo apt-get install software-properties-common;
+      sudo apt-add-repository universe;
+      sudo apt-get update;
+      sudo apt-get install maven;
+    fi;
+    if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
+      brew install maven;
+    fi;
+
 install:
   - |
-    if [[ "$TRAVIS_OS_NAME" == "osx" ]];   then DOWNLOAD_OS_NAME="darwin"; fi
-    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then DOWNLOAD_OS_NAME="linux"; fi
-    curl -LJ "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$GRAALVM_VERSION/graalvm-ce-java11-$DOWNLOAD_OS_NAME-amd64-$GRAALVM_VERSION.tar.gz" --output graalvm.tar.gz
-    tar -vxzf graalvm.tar.gz
+    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        DOWNLOAD_OS_NAME="darwin";
+        curl -LJ "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$GRAALVM_VERSION/graalvm-ce-java11-$DOWNLOAD_OS_NAME-amd64-$GRAALVM_VERSION.tar.gz" --output graalvm.tar.gz;
+        tar -vxzf graalvm.tar.gz;
+    fi;
+    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        DOWNLOAD_OS_NAME="linux";
+        curl -LJ "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$GRAALVM_VERSION/graalvm-ce-java11-$DOWNLOAD_OS_NAME-amd64-$GRAALVM_VERSION.tar.gz" --output graalvm.tar.gz;
+        tar -vxzf graalvm.tar.gz;
+    fi;
+    if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
+        DOWNLOAD_OS_NAME="windows";
+        curl -LJ "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$GRAALVM_VERSION/graalvm-ce-java11-$DOWNLOAD_OS_NAME-amd64-$GRAALVM_VERSION.zip" --output graalvm.zip;
+        7z.exe x graalvm.zip;
+    fi;
 
 script:
   - export GRAALVM_HOME="$(pwd)/graalvm-ce-java11-$GRAALVM_VERSION" && if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export GRAALVM_HOME="$GRAALVM_HOME/Contents/Home"; fi
-  - mvn clean verify
-  - mvn package
+  - export JAVA_HOME="$GRAALVM_HOME"
+  - |
+    if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
+        maven="$(find 'C:\ProgramData\chocolatey\lib\maven' -name mvn | head -n1)";
+    else
+        maven="mvn";
+    fi;
+  - $maven clean verify
+  - $maven package
 
 after_success:
-  - mvn clean test jacoco:report coveralls:report
-  - mvn site
+  - $maven clean test jacoco:report coveralls:report
+  - $maven site
+  
