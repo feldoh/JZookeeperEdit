@@ -65,6 +65,6 @@ script:
   - $maven package
 
 after_success:
-  - mvn clean test jacoco:report coveralls:report
-  - mvn site
+  - $maven clean test jacoco:report coveralls:report
+  - $maven site
   
