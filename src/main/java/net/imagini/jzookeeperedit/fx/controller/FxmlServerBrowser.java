@@ -34,14 +34,14 @@ import net.imagini.jzookeeperedit.fx.view.ZkTreeNodeCellFactory;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.CuratorEvent;
 import org.apache.curator.framework.api.CuratorEventType;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.zookeeper.data.Stat;
 import org.controlsfx.dialog.ExceptionDialog;
 import org.controlsfx.dialog.Wizard;
 import org.controlsfx.dialog.WizardPane;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -62,7 +62,7 @@ import java.util.stream.Collectors;
 
 public class FxmlServerBrowser implements Initializable, ClusterAwareFxChildScene {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FxmlServerBrowser.class);
+    private static final Logger LOGGER = LogManager.getLogger(FxmlServerBrowser.class);
     private static final Charset CHARSET = java.nio.charset.StandardCharsets.UTF_8;
     private static final byte[] EMPTY_BYTES = "".getBytes(CHARSET);
 

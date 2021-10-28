@@ -4,11 +4,10 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.zookeeper.data.Stat;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +16,7 @@ import java.util.stream.Collectors;
 
 public class ZkTreeNode extends TreeItem<ZkNode> {
     private static final Charset CHARSET = java.nio.charset.StandardCharsets.UTF_8;
-    private static final Logger LOGGER = LoggerFactory.getLogger(ZkTreeNode.class);
+    private static final Logger LOGGER = LogManager.getLogger(ZkTreeNode.class);
     private static final Predicate<String> TRUE_PREDICATE = str -> true;
 
     // The isRoot of this tree item in the {@link TreeView}.

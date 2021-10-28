@@ -14,10 +14,12 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <mainClass>net.imagini.jzookeeperedit.fx.MainApp</mainClass>
-        <slf4j.version>1.7.25</slf4j.version>
-        <java.base.version>11</java.base.version>
-        <java.version>${java.base.version}</java.version>
+        <mainClassName>net.imagini.jzookeeperedit.fx.MainApp</mainClassName>
+        <maven.compiler.release>11</maven.compiler.release>
+        <javafx.version>17.0.1</javafx.version>
+        <attach.version>4.0.13</attach.version>
+        <gluonfx.plugin.version>1.0.8</gluonfx.plugin.version>
+        <javafx.plugin.version>0.0.8</javafx.plugin.version>
     </properties>
 
     <organization>
@@ -61,7 +63,7 @@
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-framework</artifactId>
-            <version>4.0.1</version>
+            <version>5.2.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.zookeeper</groupId>
@@ -72,37 +74,38 @@
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
-            <version>3.4.14</version>
+            <version>3.7.0</version>
         </dependency>
         <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-controls</artifactId>
-            <version>${java.base.version}</version>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.14.1</version>
         </dependency>
         <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-fxml</artifactId>
-            <version>${java.base.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.controlsfx</groupId>
-            <artifactId>controlsfx</artifactId>
-            <version>${java.base.version}.0.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>${slf4j.version}</version>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.14.1</version>
         </dependency>
         <dependency>
             <groupId>com.beust</groupId>
             <artifactId>jcommander</artifactId>
             <version>1.72</version>
+        </dependency>
+        <!-- JavaFX dependencies -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.controlsfx</groupId>
+            <artifactId>controlsfx</artifactId>
+            <version>${maven.compiler.release}.1.0</version>
         </dependency>
         <!-- test dependencies -->
         <dependency>
@@ -130,6 +133,14 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>Gluon</id>
+            <url>https://nexus.gluonhq.com/nexus/content/repositories/releases</url>
+        </repository>
+    </repositories>
+    
     <build>
         <finalName>${project.artifactId}</finalName>
         <pluginManagement>
@@ -152,9 +163,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <release>${java.version}</release>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
+                    <release>${maven.compiler.release}</release>
+                    <source>${maven.compiler.release}</source>
+                    <target>${maven.compiler.release}</target>
                     <showDeprecation>true</showDeprecation>
                 </configuration>
             </plugin>
@@ -195,28 +206,32 @@
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
-                <version>0.0.5</version>
+                <version>${javafx.plugin.version}</version>
                 <configuration>
-                    <mainClass>${mainClass}</mainClass>
+                    <mainClass>${mainClassName}</mainClass>
+                    <options>
+                        <option>--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED</option>
+                    </options>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>com.gluonhq</groupId>
-                <artifactId>client-maven-plugin</artifactId>
-                <version>0.1.33</version>
+                <artifactId>gluonfx-maven-plugin</artifactId>
+                <version>${gluonfx.plugin.version}</version>
                 <configuration>
-                    <target>host</target>
-                    <mainClass>${mainClass}</mainClass>
+                    <target>host</target> <!-- Tells gluon to build for the OS it is running on -->
+                    <reflectionList>
+                        <list>net.imagini.jzookeeperedit.fx.controller.FxmlServerBrowser</list>
+                        <list>io.netty.util.internal.logging.Log4J2LoggerFactory</list>
+                        <list>io.netty.util.internal.logging.Log4J2Logger</list>
+                        <list>org.apache.logging.log4j.core.impl.Log4jContextFactory</list>
+                        <list>org.apache.logging.log4j.message.DefaultFlowMessageFactory</list>
+                        <list>org.apache.logging.log4j.message.ParameterizedMessageFactory</list>
+                        <list>org.apache.log4j.Category</list>
+                        <list>org.apache.log4j.Logger</list>
+                    </reflectionList>
+                    <mainClass>${mainClassName}</mainClass>
                 </configuration>
-                <executions>
-                    <execution>
-                        <id>create-native</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>package</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
 
             <plugin>

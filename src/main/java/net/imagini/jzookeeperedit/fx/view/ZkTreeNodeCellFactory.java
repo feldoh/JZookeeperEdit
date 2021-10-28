@@ -5,14 +5,14 @@ import javafx.scene.control.TreeView;
 import javafx.util.Callback;
 import net.imagini.jzookeeperedit.ZkNode;
 import net.imagini.jzookeeperedit.ZkTreeNode;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.decoration.Decoration;
 import org.controlsfx.control.decoration.Decorator;
 import org.controlsfx.control.decoration.StyleClassDecoration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ZkTreeNodeCellFactory implements Callback<TreeView<ZkNode>, TreeCell<ZkNode>> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ZkTreeNodeCellFactory.class);
+    private static final Logger LOGGER = LogManager.getLogger(ZkTreeNodeCellFactory.class);
     private static final Decoration FILTERED_DECORATION = new StyleClassDecoration("tree-cell-filtered");
 
     @Override

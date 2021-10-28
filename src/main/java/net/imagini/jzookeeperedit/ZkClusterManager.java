@@ -4,8 +4,8 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,7 +20,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 public class ZkClusterManager {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ZkClusterManager.class);
+    private static final Logger LOGGER = LogManager.getLogger(ZkClusterManager.class);
     private static final RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 5, 5000);
     private final Map<String, CuratorFramework> zkClients = new HashMap<>(10);
     private final Properties properties = new Properties();
