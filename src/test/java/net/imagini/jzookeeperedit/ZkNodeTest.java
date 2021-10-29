@@ -1,30 +1,32 @@
 package net.imagini.jzookeeperedit;
 
 import org.apache.curator.framework.CuratorFramework;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@ExtendWith(MockitoExtension.class)
 public class ZkNodeTest {
     private static final String NODE_LABEL = "someNode";
-
-    @Rule
-    public MockitoRule mockito = MockitoJUnit.rule();
 
     @Mock
     CuratorFramework mockZkClient;
 
     private ZkNode unit;
 
-    @Before
+    @BeforeEach
     public void setup() {
-        Mockito.verifyZeroInteractions(mockZkClient);
+        Mockito.verifyNoInteractions(mockZkClient);
     }
 
     @Test

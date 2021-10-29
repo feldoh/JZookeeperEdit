@@ -1,13 +1,12 @@
 package net.imagini.zkcli;
 
 import org.apache.curator.framework.CuratorFramework;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.PrintStream;
 import java.lang.reflect.Field;
@@ -18,9 +17,9 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anySet;
@@ -30,10 +29,8 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class ZkCliTest {
-    @Rule
-    public MockitoRule mockito = MockitoJUnit.rule();
-
     @Mock
     private CliParameters mockParams;
     @Mock
@@ -47,7 +44,7 @@ public class ZkCliTest {
     @Mock
     private PrintStream mockStdOut;
 
-    @Before
+    @BeforeEach
     public void setup() {
         System.setOut(mockStdOut);
     }

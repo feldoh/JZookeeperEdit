@@ -4,28 +4,26 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.ExistsBuilder;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class ZkMetadataHandlerTest {
-    @Rule
-    public MockitoRule mockito = MockitoJUnit.rule();
-
     @Mock
     private CuratorFramework client;
 
@@ -44,25 +42,22 @@ public class ZkMetadataHandlerTest {
 
     private List<String> validPathChildren;
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    public void setup() {
         underTest = new ZkMetadataHandler();
 
         validPathChildren = new ArrayList<>();
         validPathChildren.add("child1");
         validPathChildren.add("child2");
         validPathChildren.add("child3");
+    }
 
+    @Test
+    public void testGetMeta() throws Exception {
         when(client.checkExists()).thenReturn(statBuilder);
         when(statBuilder.forPath(VALID_PATH)).thenReturn(mockStat);
         when(mockStat.getNumChildren()).thenReturn(validPathChildren.size());
         when(mockStat.toString()).thenReturn(STAT_LINE);
-        doThrow(KeeperException.NoNodeException.class)
-                .when(statBuilder).forPath(eq(INVALID_PATH));
-    }
-
-    @Test
-    public void testGetMeta() {
         assertEquals(STAT_LINE, underTest.getPathMetaData(client, VALID_PATH, null));
         assertEquals(STAT_LINE, underTest.getPathMetaData(client, VALID_PATH, ""));
 
@@ -76,21 +71,22 @@ public class ZkMetadataHandlerTest {
         assertTrue(underTest.getMetaAccessorMethodNames().noneMatch("serialize"::equals));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void testGetMetaOfInvalidPath() throws Exception {
-        try {
-            underTest.getPathMetaData(client, INVALID_PATH, "someAccessor");
-        } finally {
-            verify(statBuilder, times(1)).forPath(INVALID_PATH);
-        }
+        when(client.checkExists()).thenReturn(statBuilder);
+        doThrow(KeeperException.NoNodeException.class)
+                .when(statBuilder).forPath(eq(INVALID_PATH));
+        assertThrows(RuntimeException.class, () -> underTest.getPathMetaData(client, INVALID_PATH,
+                "someAccessor"));
+        verify(statBuilder, times(1)).forPath(INVALID_PATH);
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void testGetMetaWithInvalidAccessor() throws Exception {
-        try {
-            underTest.getPathMetaData(client, VALID_PATH, "someAccessor");
-        } finally {
-            verify(statBuilder, times(1)).forPath(VALID_PATH);
-        }
+        when(client.checkExists()).thenReturn(statBuilder);
+        when(statBuilder.forPath(VALID_PATH)).thenReturn(mockStat);
+        assertThrows(RuntimeException.class, () -> underTest.getPathMetaData(client, VALID_PATH,
+                "someAccessor"));
+        verify(statBuilder, times(1)).forPath(VALID_PATH);
     }
 }

@@ -2,28 +2,26 @@ package net.imagini.zkcli;
 
 import co.unruly.matchers.StreamMatchers;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.api.ExistsBuilder;
 import org.apache.curator.framework.api.GetChildrenBuilder;
 import org.apache.curator.framework.api.GetDataBuilder;
 import org.apache.zookeeper.KeeperException;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@ExtendWith(MockitoExtension.class)
 public class ZkReadHandlerTest {
-    @Rule
-    public MockitoRule mockito = MockitoJUnit.rule();
 
     @Mock
     private CuratorFramework client;
@@ -43,27 +41,20 @@ public class ZkReadHandlerTest {
 
     private List<String> validPathChildren;
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    public void setup() {
         underTest = new ZkReadHandler();
 
         validPathChildren = new ArrayList<>();
         validPathChildren.add("child1");
         validPathChildren.add("child2");
         validPathChildren.add("child3");
-
-        Mockito.when(client.getData()).thenReturn(dataBuilder);
-        Mockito.when(dataBuilder.forPath(VALID_PATH)).thenReturn(VALID_PATH_DATA);
-        Mockito.when(client.getChildren()).thenReturn(getChildrenBuilder);
-        Mockito.when(getChildrenBuilder.forPath(VALID_PATH)).thenReturn(validPathChildren);
-        Mockito.doThrow(KeeperException.NoNodeException.class)
-                .when(getChildrenBuilder).forPath(Mockito.eq(INVALID_PATH));
-        Mockito.doThrow(KeeperException.NoNodeException.class)
-                .when(dataBuilder).forPath(Mockito.eq(INVALID_PATH));
     }
 
     @Test
     public void testGetChildren() throws Exception {
+        Mockito.when(client.getChildren()).thenReturn(getChildrenBuilder);
+        Mockito.when(getChildrenBuilder.forPath(VALID_PATH)).thenReturn(validPathChildren);
         assertThat(underTest.getChildren(client, VALID_PATH, false),
                 StreamMatchers.equalTo(validPathChildren.stream()));
         Mockito.verify(getChildrenBuilder, Mockito.times(1)).forPath(VALID_PATH);
@@ -71,32 +62,36 @@ public class ZkReadHandlerTest {
 
     @Test
     public void testGetChildrenWithPaths() throws Exception {
+        Mockito.when(client.getChildren()).thenReturn(getChildrenBuilder);
+        Mockito.when(getChildrenBuilder.forPath(VALID_PATH)).thenReturn(validPathChildren);
         assertThat(underTest.getChildren(client, VALID_PATH, true), StreamMatchers.equalTo(validPathChildren.stream()
                                                .map(child -> String.format("%s/%s", VALID_PATH, child))));
         Mockito.verify(getChildrenBuilder, Mockito.times(1)).forPath(VALID_PATH);
     }
 
     @Test
-    public void testGetData() {
+    public void testGetData() throws Exception {
+        Mockito.when(client.getData()).thenReturn(dataBuilder);
+        Mockito.when(dataBuilder.forPath(VALID_PATH)).thenReturn(VALID_PATH_DATA);
         assertEquals(new String(VALID_PATH_DATA, CHARSET), underTest.getPathData(client, VALID_PATH));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void testGetChildrenOfInvalidPath() throws Exception {
-        try {
-            underTest.getChildren(client, INVALID_PATH, false);
-        } finally {
-            Mockito.verify(getChildrenBuilder, Mockito.times(1)).forPath(INVALID_PATH);
-        }
+        Mockito.when(client.getChildren()).thenReturn(getChildrenBuilder);
+        Mockito.doThrow(KeeperException.NoNodeException.class)
+                .when(getChildrenBuilder).forPath(Mockito.eq(INVALID_PATH));
+        assertThrows(RuntimeException.class, () -> underTest.getChildren(client, INVALID_PATH,false));
+        Mockito.verify(getChildrenBuilder, Mockito.times(1)).forPath(INVALID_PATH);
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void testGetDataOfInvalidPath() throws Exception {
-        try {
-            underTest.getPathData(client, INVALID_PATH);
-        } finally {
-            Mockito.verify(dataBuilder, Mockito.times(1)).forPath(INVALID_PATH);
-        }
+        Mockito.when(client.getData()).thenReturn(dataBuilder);
+        Mockito.doThrow(KeeperException.NoNodeException.class)
+                .when(dataBuilder).forPath(Mockito.eq(INVALID_PATH));
+        assertThrows(RuntimeException.class, () -> underTest.getPathData(client, INVALID_PATH));
+        Mockito.verify(dataBuilder, Mockito.times(1)).forPath(INVALID_PATH);
     }
 
 }
