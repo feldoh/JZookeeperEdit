@@ -15,9 +15,10 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <mainClass>net.imagini.jzookeeperedit.fx.MainApp</mainClass>
-        <slf4j.version>1.7.25</slf4j.version>
+        <slf4j.version>1.7.30</slf4j.version>
         <java.base.version>11</java.base.version>
         <java.version>${java.base.version}</java.version>
+        <graalvm.version>20.2.0</graalvm.version>
     </properties>
 
     <organization>
@@ -61,18 +62,22 @@
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-framework</artifactId>
-            <version>4.0.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.zookeeper</groupId>
-                    <artifactId>zookeeper</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>5.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
-            <version>3.4.14</version>
+            <version>3.6.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
@@ -87,7 +92,7 @@
         <dependency>
             <groupId>org.controlsfx</groupId>
             <artifactId>controlsfx</artifactId>
-            <version>${java.base.version}.0.0</version>
+            <version>${java.base.version}.0.2</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -96,13 +101,13 @@
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
+            <artifactId>slf4j-simple</artifactId>
             <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>com.beust</groupId>
             <artifactId>jcommander</artifactId>
-            <version>1.72</version>
+            <version>1.78</version>
         </dependency>
         <!-- test dependencies -->
         <dependency>
@@ -114,13 +119,13 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>2.23.0</version>
+            <version>3.5.15</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>co.unruly</groupId>
             <artifactId>java-8-matchers</artifactId>
-            <version>1.5</version>
+            <version>1.6</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -128,6 +133,13 @@
             <artifactId>java-hamcrest</artifactId>
             <version>2.0.0.0</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.nativeimage</groupId>
+            <artifactId>svm</artifactId>
+            <version>${graalvm.version}</version>
+            <!-- Provided scope as it is only needed for compiling the SVM substitution classes -->
+            <scope>provided</scope>
         </dependency>
     </dependencies>
     <build>
@@ -207,6 +219,38 @@
                 <configuration>
                     <target>host</target>
                     <mainClass>${mainClass}</mainClass>
+                    <verbose>true</verbose>
+                    <reflectionList>
+                        <list>impl.org.controlsfx.i18n.Localization</list>
+                        <list>javafx.geometry.Insets</list>
+                        <list>javafx.scene.CacheHint</list>
+                        <list>javafx.scene.control.Accordion</list>
+                        <list>javafx.scene.control.Button</list>
+                        <list>javafx.scene.control.Label</list>
+                        <list>javafx.scene.control.SplitPane</list>
+                        <list>javafx.scene.control.TextArea</list>
+                        <list>javafx.scene.control.TitledPane</list>
+                        <list>javafx.scene.control.ToolBar</list>
+                        <list>javafx.scene.control.TreeView</list>
+                        <list>javafx.scene.image.Image</list>
+                        <list>javafx.scene.image.ImageView</list>
+                        <list>javafx.scene.layout.AnchorPane</list>
+                        <list>javafx.scene.layout.ColumnConstraints</list>
+                        <list>javafx.scene.layout.FlowPane</list>
+                        <list>javafx.scene.layout.GridPane</list>
+                        <list>javafx.scene.layout.HBox</list>
+                        <list>javafx.scene.layout.RowConstraints</list>
+                        <list>net.imagini.jzookeeperedit.fx.controller.FxmlServerBrowser</list>
+                        <list>org.apache.zookeeper.ClientCnxnSocketNIO</list>
+                        <list>org.controlsfx.dialog.Wizard</list>
+                    </reflectionList>
+                    <resourcesList>
+                        <list>.*\\.bss$</list>
+                        <list>.*\\.properties$</list>
+                    </resourcesList>
+                    <nativeImageArgs>
+                        <list>--initialize-at-build-time=org.controlsfx.dialog.Wizard</list>
+                    </nativeImageArgs>
                 </configuration>
                 <executions>
                     <execution>

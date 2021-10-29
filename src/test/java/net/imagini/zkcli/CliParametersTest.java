@@ -153,7 +153,7 @@ public class CliParametersTest {
 
     @Test
     public void testGetClusterWithNoClusterConfigured() {
-        verifyZeroInteractions(mockClusterManager);
+        verifyNoInteractions(mockClusterManager);
         underTest = new CliParameters(Collections.singletonList("/a/path"), mockClusterManager);
         underTest.getCluster();
         assertFalse(underTest.getCluster().isPresent());

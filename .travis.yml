@@ -62,9 +62,8 @@ script:
         maven="mvn";
     fi;
   - $maven clean verify
-  - $maven package
+  - $maven client:build client:link
 
 after_success:
   - $maven clean test jacoco:report coveralls:report
   - $maven site
-  
