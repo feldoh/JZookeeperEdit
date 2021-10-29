@@ -18,6 +18,8 @@
         <slf4j.version>1.7.25</slf4j.version>
         <java.base.version>11</java.base.version>
         <java.version>${java.base.version}</java.version>
+        <junit.version>5.8.1</junit.version>
+        <mockito.version>4.0.0</mockito.version>
     </properties>
 
     <organization>
@@ -106,15 +108,27 @@
         </dependency>
         <!-- test dependencies -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.1</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>2.23.0</version>
+            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

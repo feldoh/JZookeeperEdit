@@ -3,27 +3,30 @@ package net.imagini.zkcli;
 import com.beust.jcommander.ParameterException;
 import net.imagini.jzookeeperedit.ZkClusterManager;
 import org.apache.curator.framework.CuratorFramework;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class CliParametersTest {
-    @Rule
-    public MockitoRule mockito = MockitoJUnit.rule();
 
     @Mock
     private CuratorFramework mockClient;
@@ -153,7 +156,7 @@ public class CliParametersTest {
 
     @Test
     public void testGetClusterWithNoClusterConfigured() {
-        verifyZeroInteractions(mockClusterManager);
+        verifyNoInteractions(mockClusterManager);
         underTest = new CliParameters(Collections.singletonList("/a/path"), mockClusterManager);
         underTest.getCluster();
         assertFalse(underTest.getCluster().isPresent());
@@ -173,9 +176,9 @@ public class CliParametersTest {
         assertTrue(underTest.includesAction());
     }
 
-    @Test(expected = ParameterException.class)
+    @Test
     public void missingParamValue() {
-        underTest = new CliParameters(new String[]{"--metaField"}, null);
+        assertThrows(ParameterException.class, () -> new CliParameters(new String[]{"--metaField"}, null));
     }
 
     @Test

@@ -8,13 +8,13 @@ import org.apache.curator.framework.api.GetDataBuilder;
 import org.apache.curator.framework.api.SetDataBuilder;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.zookeeper.data.Stat;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -25,22 +25,20 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class ZkTreeNodeTest {
     private static final Charset CHARSET = java.nio.charset.StandardCharsets.UTF_8;
     private static final String NODE_NAME = "aNode";
     private static final String ROOT_PATH = "/";
     private static final String VALID_PATH = "/valid/path";
     private static final String DATA = "Some very interesting\nDATA!!!!!!!";
-
-    @Rule
-    public MockitoRule mockito = MockitoJUnit.rule();
 
     @Mock
     private CuratorFramework mockClient;
@@ -58,22 +56,12 @@ public class ZkTreeNodeTest {
     private ZkTreeNode unit;
     private List<String> validPathChildren;
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    public void setup() {
         validPathChildren = new ArrayList<>();
         validPathChildren.add("child1");
         validPathChildren.add("child2");
         validPathChildren.add("child3");
-
-        when(mockClient.getState()).thenReturn(CuratorFrameworkState.STARTED);
-        when(mockClient.setData()).thenReturn(mockSetDataBuilder);
-        when(mockClient.getData()).thenReturn(mockDataBuilder);
-        when(mockDataBuilder.forPath(VALID_PATH)).thenReturn(DATA.getBytes(CHARSET));
-        when(mockClient.getChildren()).thenReturn(mockGetChildrenBuilder);
-        when(mockGetChildrenBuilder.forPath(VALID_PATH)).thenReturn(validPathChildren);
-        when(mockClient.checkExists()).thenReturn(mockStatBuilder);
-        when(mockStatBuilder.forPath(VALID_PATH)).thenReturn(mockStat);
-        when(mockStat.getNumChildren()).thenReturn(validPathChildren.size());
     }
 
     @Test
@@ -83,14 +71,26 @@ public class ZkTreeNodeTest {
     }
 
     @Test
-    public void testNodesStartUnfiltered() {
+    public void testNodesStartUnfiltered() throws Exception {
+        when(mockClient.getState()).thenReturn(CuratorFrameworkState.STARTED);
+        when(mockClient.getChildren()).thenReturn(mockGetChildrenBuilder);
+        when(mockGetChildrenBuilder.forPath(VALID_PATH)).thenReturn(validPathChildren);
+        when(mockClient.checkExists()).thenReturn(mockStatBuilder);
+        when(mockStatBuilder.forPath(VALID_PATH)).thenReturn(mockStat);
+        when(mockStat.getNumChildren()).thenReturn(validPathChildren.size());
         unit = new ZkTreeNode(mockClient, NODE_NAME, false, VALID_PATH);
         unit.loadChildren();
         assertFalse(unit.isFiltered());
     }
 
     @Test
-    public void testFilteringSetsIsFiltered() {
+    public void testFilteringSetsIsFiltered() throws Exception {
+        when(mockClient.getState()).thenReturn(CuratorFrameworkState.STARTED);
+        when(mockClient.getChildren()).thenReturn(mockGetChildrenBuilder);
+        when(mockGetChildrenBuilder.forPath(VALID_PATH)).thenReturn(validPathChildren);
+        when(mockClient.checkExists()).thenReturn(mockStatBuilder);
+        when(mockStatBuilder.forPath(VALID_PATH)).thenReturn(mockStat);
+        when(mockStat.getNumChildren()).thenReturn(validPathChildren.size());
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         unit.loadChildren((x) -> true);
         assertThat(unit.getChildren().stream(),
@@ -100,7 +100,13 @@ public class ZkTreeNodeTest {
     }
 
     @Test
-    public void testFilteringLimitsChildren() {
+    public void testFilteringLimitsChildren() throws Exception {
+        when(mockClient.getState()).thenReturn(CuratorFrameworkState.STARTED);
+        when(mockClient.getChildren()).thenReturn(mockGetChildrenBuilder);
+        when(mockGetChildrenBuilder.forPath(VALID_PATH)).thenReturn(validPathChildren);
+        when(mockClient.checkExists()).thenReturn(mockStatBuilder);
+        when(mockStatBuilder.forPath(VALID_PATH)).thenReturn(mockStat);
+        when(mockStat.getNumChildren()).thenReturn(validPathChildren.size());
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         unit.loadChildren((x) -> x.endsWith("2") || x.endsWith("3"));
         assertThat(unit.getChildren().stream(),
@@ -110,7 +116,13 @@ public class ZkTreeNodeTest {
     }
 
     @Test
-    public void testGettingChildrenLoadsIfNotLoaded() {
+    public void testGettingChildrenLoadsIfNotLoaded() throws Exception {
+        when(mockClient.getState()).thenReturn(CuratorFrameworkState.STARTED);
+        when(mockClient.getChildren()).thenReturn(mockGetChildrenBuilder);
+        when(mockGetChildrenBuilder.forPath(VALID_PATH)).thenReturn(validPathChildren);
+        when(mockClient.checkExists()).thenReturn(mockStatBuilder);
+        when(mockStatBuilder.forPath(VALID_PATH)).thenReturn(mockStat);
+        when(mockStat.getNumChildren()).thenReturn(validPathChildren.size());
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         assertThat(unit.getChildren().stream(),
                 StreamMatchers.equalTo(validPathChildren.stream()
@@ -119,7 +131,13 @@ public class ZkTreeNodeTest {
     }
 
     @Test
-    public void testGettingChildrenDoesNotLoadIfPreLoaded() {
+    public void testGettingChildrenDoesNotLoadIfPreLoaded() throws Exception {
+        when(mockClient.getState()).thenReturn(CuratorFrameworkState.STARTED);
+        when(mockClient.getChildren()).thenReturn(mockGetChildrenBuilder);
+        when(mockGetChildrenBuilder.forPath(VALID_PATH)).thenReturn(validPathChildren);
+        when(mockClient.checkExists()).thenReturn(mockStatBuilder);
+        when(mockStatBuilder.forPath(VALID_PATH)).thenReturn(mockStat);
+        when(mockStat.getNumChildren()).thenReturn(validPathChildren.size());
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         assertThat(unit.getChildren().stream(),
                 StreamMatchers.equalTo(validPathChildren.stream()
@@ -136,8 +154,14 @@ public class ZkTreeNodeTest {
     }
 
     @Test
-    public void testInvalidateChildrenCacheCausesGetChildrenToReloadOnNextCall() {
+    public void testInvalidateChildrenCacheCausesGetChildrenToReloadOnNextCall() throws Exception {
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
+        when(mockClient.getState()).thenReturn(CuratorFrameworkState.STARTED);
+        when(mockClient.getChildren()).thenReturn(mockGetChildrenBuilder);
+        when(mockGetChildrenBuilder.forPath(VALID_PATH)).thenReturn(validPathChildren);
+        when(mockClient.checkExists()).thenReturn(mockStatBuilder);
+        when(mockStatBuilder.forPath(VALID_PATH)).thenReturn(mockStat);
+        when(mockStat.getNumChildren()).thenReturn(validPathChildren.size());
         assertThat(unit.getChildren().stream(),
                 StreamMatchers.equalTo(validPathChildren.stream()
                        .map(name -> new ZkTreeNode(mockClient, name, false, String.join("/", VALID_PATH, name)))));
@@ -149,7 +173,13 @@ public class ZkTreeNodeTest {
     }
 
     @Test
-    public void testReloadingRemovesChildrenFilter() {
+    public void testReloadingRemovesChildrenFilter() throws Exception {
+        when(mockClient.getState()).thenReturn(CuratorFrameworkState.STARTED);
+        when(mockClient.getChildren()).thenReturn(mockGetChildrenBuilder);
+        when(mockGetChildrenBuilder.forPath(VALID_PATH)).thenReturn(validPathChildren);
+        when(mockClient.checkExists()).thenReturn(mockStatBuilder);
+        when(mockStatBuilder.forPath(VALID_PATH)).thenReturn(mockStat);
+        when(mockStat.getNumChildren()).thenReturn(validPathChildren.size());
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         unit.loadChildren((x) -> x.endsWith("2") || x.endsWith("3"));
         assertThat(unit.getChildren().stream(),
@@ -165,6 +195,9 @@ public class ZkTreeNodeTest {
 
     @Test
     public void invalidateMetadataCache() throws Exception {
+        when(mockClient.getState()).thenReturn(CuratorFrameworkState.STARTED);
+        when(mockClient.checkExists()).thenReturn(mockStatBuilder);
+        when(mockStatBuilder.forPath(VALID_PATH)).thenReturn(mockStat);
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         Stat stat = unit.getStat().orElse(null); // Get 1
         assertEquals(stat, mockStat);
@@ -177,6 +210,12 @@ public class ZkTreeNodeTest {
 
     @Test
     public void getChildren() throws Exception {
+        when(mockClient.getState()).thenReturn(CuratorFrameworkState.STARTED);
+        when(mockClient.getChildren()).thenReturn(mockGetChildrenBuilder);
+        when(mockGetChildrenBuilder.forPath(VALID_PATH)).thenReturn(validPathChildren);
+        when(mockClient.checkExists()).thenReturn(mockStatBuilder);
+        when(mockStatBuilder.forPath(VALID_PATH)).thenReturn(mockStat);
+        when(mockStat.getNumChildren()).thenReturn(validPathChildren.size());
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         assertThat(unit.getChildren().stream(),
                 StreamMatchers.equalTo(validPathChildren.stream()
@@ -186,6 +225,8 @@ public class ZkTreeNodeTest {
 
     @Test
     public void testIsLeafIsTrueIfNodeHasNoChildren() throws Exception {
+        when(mockClient.getState()).thenReturn(CuratorFrameworkState.STARTED);
+        when(mockClient.checkExists()).thenReturn(mockStatBuilder);
         String leafPath = VALID_PATH + "/" + "someLeaf";
         Stat mockLeafStat = Mockito.mock(Stat.class, "leafStat");
         when(mockStatBuilder.forPath(leafPath)).thenReturn(mockLeafStat);
@@ -194,7 +235,11 @@ public class ZkTreeNodeTest {
     }
 
     @Test
-    public void testIsLeafIsFalseIfNodeHasChildren() {
+    public void testIsLeafIsFalseIfNodeHasChildren() throws Exception {
+        when(mockClient.getState()).thenReturn(CuratorFrameworkState.STARTED);
+        when(mockClient.checkExists()).thenReturn(mockStatBuilder);
+        when(mockStatBuilder.forPath(VALID_PATH)).thenReturn(mockStat);
+        when(mockStat.getNumChildren()).thenReturn(validPathChildren.size());
         assertFalse(new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH).isLeaf());
     }
 
@@ -207,6 +252,9 @@ public class ZkTreeNodeTest {
 
     @Test
     public void testGetStatUsesCache() throws Exception {
+        when(mockClient.getState()).thenReturn(CuratorFrameworkState.STARTED);
+        when(mockClient.checkExists()).thenReturn(mockStatBuilder);
+        when(mockStatBuilder.forPath(VALID_PATH)).thenReturn(mockStat);
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         unit.getStat(); // Should cache
         unit.getStat();
@@ -216,6 +264,9 @@ public class ZkTreeNodeTest {
 
     @Test
     public void testGetStatFromServerIgnoresCache() throws Exception {
+        when(mockClient.getState()).thenReturn(CuratorFrameworkState.STARTED);
+        when(mockClient.checkExists()).thenReturn(mockStatBuilder);
+        when(mockStatBuilder.forPath(VALID_PATH)).thenReturn(mockStat);
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         unit.getStatFromServer(true); // Try and make it cache
         unit.getStatFromServer(true); // We should be ignoring the cache and getting anyway
@@ -225,6 +276,9 @@ public class ZkTreeNodeTest {
 
     @Test
     public void getStatFromServerForcesServerCallOnNextRead() throws Exception {
+        when(mockClient.getState()).thenReturn(CuratorFrameworkState.STARTED);
+        when(mockClient.checkExists()).thenReturn(mockStatBuilder);
+        when(mockStatBuilder.forPath(VALID_PATH)).thenReturn(mockStat);
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         unit.getStatFromServer(false); // Do not cache this result
         unit.getStat(); // We should be forced to re-get as we did not cache
@@ -233,11 +287,16 @@ public class ZkTreeNodeTest {
 
     @Test
     public void testGetDataReturnsValidContent() throws Exception {
+        when(mockClient.getState()).thenReturn(CuratorFrameworkState.STARTED);
+        when(mockClient.getData()).thenReturn(mockDataBuilder);
+        when(mockDataBuilder.forPath(VALID_PATH)).thenReturn(DATA.getBytes(CHARSET));
         assertThat(new ZkTreeNode(mockClient, NODE_NAME, false, VALID_PATH).getData().orElse(null), equalTo(DATA));
     }
 
     @Test
     public void testSaveUsesDefaultEncoding() throws Exception {
+        when(mockClient.getState()).thenReturn(CuratorFrameworkState.STARTED);
+        when(mockClient.setData()).thenReturn(mockSetDataBuilder);
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         unit.save(DATA);
         Mockito.verify(mockSetDataBuilder, times(1)).forPath(VALID_PATH, DATA.getBytes(CHARSET));
@@ -246,6 +305,8 @@ public class ZkTreeNodeTest {
     @Test
     public void testEnsureActiveOpensLatentConnections() throws Exception {
         when(mockClient.getState()).thenReturn(CuratorFrameworkState.LATENT, CuratorFrameworkState.STARTED);
+        when(mockClient.getData()).thenReturn(mockDataBuilder);
+        when(mockDataBuilder.forPath(VALID_PATH)).thenReturn(DATA.getBytes(CHARSET));
         unit = new ZkTreeNode(mockClient, NODE_NAME,false, VALID_PATH);
         unit.getData(); // Should open connection
         unit.getData(); // Should reuse connection
