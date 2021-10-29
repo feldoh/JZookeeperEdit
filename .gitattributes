@@ -1,0 +1,35 @@
+# Java sources
+*.java          text eol=lf diff=java
+
+# Other code
+*.css           text eol=lf diff=css
+*.scss          text eol=lf diff=css
+*.sass          text eol=lf
+*.df            text eol=lf
+*.htm           text eol=lf diff=html
+*.html          text eol=lf diff=html
+*.js            text eol=lf
+*.jsp           text eol=lf
+*.jspf          text eol=lf
+*.jspx          text eol=lf
+*.md            text eol=lf
+*.properties    text eol=lf
+*.tld           text eol=lf
+*.tag           text eol=lf
+*.tagx          text eol=lf
+*.txt           text eol=lf eol=lf
+*.xml           text eol=lf
+*.fxml          text eol=lf
+
+# These files are binary and should be left untouched
+# (binary is a macro for -text -diff)
+*.class         binary
+*.dll           binary
+*.ear           binary
+*.jar           binary
+*.so            binary
+*.war           binary
+*.jks           binary
+*.ico           binary
+*.icns          binary
+*.png           binary
