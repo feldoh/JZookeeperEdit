@@ -9,7 +9,7 @@
     <packaging>jar</packaging>
 
     <name>JZookeeperEdit</name>
-    <url>http://feldoh.github.io/JZookeeperEdit/</url>
+    <url>https://feldoh.github.io/JZookeeperEdit/</url>
     <description>Zookeeper Graphical Editor and Pipe-Friendly CLI</description>
 
     <properties>
@@ -24,6 +24,39 @@
     <organization>
         <name>VisualDNA</name>
     </organization>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>manual</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>feldoh</id>
+            <name>Dexter Lowe</name>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+            <timezone>Europe/London</timezone>
+        </developer>
+    </developers>
+
+    <issueManagement>
+        <system>Github Issues</system>
+        <url>https://github.com/feldoh/JZookeeperEdit/issues</url>
+    </issueManagement>
+
+    <scm>
+        <connection>scm:git:https://github.com/feldoh/JZookeeperEdit.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:feldoh/JZookeeperEdit.git</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://github.com/feldoh/JZookeeperEdit.git</url>
+    </scm>
 
     <dependencies>
         <dependency>
