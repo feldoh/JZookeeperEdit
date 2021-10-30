@@ -17,7 +17,7 @@
 *.tld           text eol=lf
 *.tag           text eol=lf
 *.tagx          text eol=lf
-*.txt           text eol=lf eol=lf
+*.txt           text eol=lf
 *.xml           text eol=lf
 *.fxml          text eol=lf
 
